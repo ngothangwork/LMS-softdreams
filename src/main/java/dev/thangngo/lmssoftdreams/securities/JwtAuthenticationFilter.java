@@ -1,4 +1,4 @@
-package dev.thangngo.travelmate.sercurities;
+package dev.thangngo.lmssoftdreams.securities;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

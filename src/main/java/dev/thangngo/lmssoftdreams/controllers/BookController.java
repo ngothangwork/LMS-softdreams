@@ -1,11 +1,17 @@
 package dev.thangngo.lmssoftdreams.controllers;
 
 import dev.thangngo.lmssoftdreams.dtos.request.book.BookCreateRequest;
+import dev.thangngo.lmssoftdreams.dtos.request.book.BookSearchRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.book.BookUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.ApiResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.book.BookResponse;
 import dev.thangngo.lmssoftdreams.services.BookService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -60,7 +66,7 @@ public class BookController {
                 .build());
     }
 
-    @GetMapping
+    @GetMapping("")
     public ResponseEntity<ApiResponse<List<BookResponse>>> getBooks(
             @RequestParam(required = false) String name) {
         List<BookResponse> response = (name != null)
@@ -84,4 +90,21 @@ public class BookController {
                 .success(true)
                 .build());
     }
+
+    @PostMapping("/search")
+    public ResponseEntity<ApiResponse<Page<BookResponse>>> searchBooks(
+            @RequestBody @Valid BookSearchRequest request,
+            @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.ASC) Pageable pageable
+    ) {
+        Page<BookResponse> result = bookService.filterBooks(request, pageable);
+        return ResponseEntity.ok(
+                ApiResponse.<Page<BookResponse>>builder()
+                        .success(true)
+                        .code(200)
+                        .message("Search books successfully")
+                        .result(result)
+                        .build()
+        );
+    }
+
 }

@@ -1,4 +1,17 @@
 package dev.thangngo.lmssoftdreams.dtos.request.category;
 
-public class CategoryCreateRequets {
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class CategoryCreateRequest {
+
+    @Size(min = 4, max = 100, message = "Category name must be between 4 and 100 characters")
+    @NotNull(message = "Category name is required")
+    private String name;
+
+    private String description;
 }

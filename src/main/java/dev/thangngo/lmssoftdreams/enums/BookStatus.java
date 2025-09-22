@@ -1,4 +1,6 @@
 package dev.thangngo.lmssoftdreams.enums;
 
-public enum Status {
+public enum BookStatus {
+    AVAILABLE,
+    UNAVAILABLE
 }

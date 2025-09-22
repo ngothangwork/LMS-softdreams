@@ -1,6 +1,6 @@
-package dev.thangngo.travelmate.config;
+package dev.thangngo.lmssoftdreams.config;
 
-import dev.thangngo.travelmate.sercurities.JwtAuthenticationFilter;
+import dev.thangngo.lmssoftdreams.securities.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,8 +22,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> {}) // enable CORS
-                .csrf(AbstractHttpConfigurer::disable) // disable CSRF
+                .cors(cors -> {})
+                .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // JWT stateless
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**", "/public/**").permitAll()

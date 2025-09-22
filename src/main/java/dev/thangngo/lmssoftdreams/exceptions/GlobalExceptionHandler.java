@@ -1,6 +1,7 @@
-package dev.thangngo.travelmate.exceptions;
+package dev.thangngo.lmssoftdreams.exceptions;
 
-import dev.thangngo.travelmate.dtos.response.ApiResponse;
+import dev.thangngo.lmssoftdreams.dtos.response.ApiResponse;
+import dev.thangngo.lmssoftdreams.enums.ErrorCode;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,8 +1,8 @@
-package dev.thangngo.travelmate.config;
+package dev.thangngo.lmssoftdreams.config;
 
-import dev.thangngo.travelmate.entities.User;
-import dev.thangngo.travelmate.enums.UserRole;
-import dev.thangngo.travelmate.repositories.UserRepository;
+import dev.thangngo.lmssoftdreams.entities.User;
+import dev.thangngo.lmssoftdreams.enums.UserRole;
+import dev.thangngo.lmssoftdreams.repositories.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -24,7 +24,7 @@ public class ApplicationInitConfig {
     private PasswordEncoder passwordEncoder;
 
     @NonFinal
-    static final String ADMIN_USER_EMAIL = "ngothang.learn@gmail.com";
+    static final String ADMIN_USER_NAME = "ngothang";
 
     @NonFinal
     @Value("${admin.password}")
@@ -34,13 +34,11 @@ public class ApplicationInitConfig {
     ApplicationRunner applicationRunner(UserRepository userRepository) {
         log.info("ApplicationRunner started");
         return args -> {
-            if (userRepository.findByEmail(ADMIN_USER_EMAIL).isEmpty()) {
+            if (userRepository.findByUsername(ADMIN_USER_NAME).isEmpty()) {
                 User admin = new User();
-                admin.setName("Admin");
-                admin.setEmail(ADMIN_USER_EMAIL);
-                admin.setPasswordHash(passwordEncoder.encode(adminPassword));
+                admin.setUsername(ADMIN_USER_NAME);
+                admin.setPassword(passwordEncoder.encode(adminPassword));
                 admin.setRole(UserRole.ADMIN);
-                admin.setPoints(10000000L);
                 userRepository.save(admin);
             }
             log.info("Application initialization completed .....");

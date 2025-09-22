@@ -1,4 +1,4 @@
-package dev.thangngo.lmssoftdreams.dtos;
+package dev.thangngo.lmssoftdreams.dtos.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Builder;
@@ -11,5 +11,5 @@ public class ApiResponse<T> {
     private boolean success;
     private int code;
     private String message;
-    private T data;
+    private T result;
 }
