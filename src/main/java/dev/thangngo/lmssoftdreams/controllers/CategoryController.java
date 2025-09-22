@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -34,9 +35,14 @@ public class CategoryController {
         );
     }
 
-    @GetMapping("/{name}")
+    @GetMapping("name/{name}")
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getCategoryByName(@PathVariable String name) {
-        List<CategoryResponse> categoryResponseList = categoryService.getCategoryByNameContaining(name);
+        List<CategoryResponse> categoryResponseList;
+        if( name == null || name.isEmpty() ){
+            categoryResponseList = categoryService.getAllCategories();
+        }else{
+            categoryResponseList = categoryService.getCategoryByNameContaining(name);
+        }
         return ResponseEntity.ok(
                 ApiResponse.<List<CategoryResponse>>builder()
                         .message("Get list category contain string " + name)
