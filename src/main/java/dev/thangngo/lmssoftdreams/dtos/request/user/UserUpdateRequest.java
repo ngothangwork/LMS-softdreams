@@ -15,7 +15,6 @@ public class UserUpdateRequest {
 
     private String gender;
 
-    // ISO-8601 format: yyyy-MM-dd
     @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$",
             message = "DOB must be in format yyyy-MM-dd (e.g., 1990-12-31)")
     private String dob;

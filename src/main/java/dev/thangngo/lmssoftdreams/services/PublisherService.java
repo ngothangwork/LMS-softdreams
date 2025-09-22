@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface PublisherService {
     PublisherResponse getPublisherById(Long id);
-    PublisherResponse getPublisherByName(String name);
+    List<PublisherResponse> getPublisherByName(String name);
     PublisherResponse createPublisher(PublisherCreateRequest request);
     void deletePublisher(Long id);
     PublisherResponse updatePublisher(Long id, PublisherUpdateRequest request);

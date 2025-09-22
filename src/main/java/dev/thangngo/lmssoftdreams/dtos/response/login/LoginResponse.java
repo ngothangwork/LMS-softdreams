@@ -5,11 +5,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 @Getter
 @Setter
 @NoArgsConstructor
 public class LoginResponse implements Serializable {
+    private UUID userId;
     private String username;
     private String fullName;
     private String token;

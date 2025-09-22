@@ -32,12 +32,11 @@ public class PublisherServiceImpl implements PublisherService {
     }
 
     @Override
-    public PublisherResponse getPublisherByName(String name) {
-        return publisherRepository.findAll().stream()
-                .filter(p -> p.getName().equalsIgnoreCase(name))
-                .findFirst()
+    public List<PublisherResponse> getPublisherByName(String name) {
+        return publisherRepository.findByNameContaining(name)
+                .stream()
                 .map(publisherMapper::toPublisherResponse)
-                .orElseThrow(() -> new AppException(ErrorCode.PUBLISHER_NOT_FOUND));
+                .toList();
     }
 
     @Override
