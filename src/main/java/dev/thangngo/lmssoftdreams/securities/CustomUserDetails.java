@@ -1,6 +1,6 @@
-package dev.thangngo.travelmate.sercurities;
+package dev.thangngo.lmssoftdreams.securities;
 
-import dev.thangngo.travelmate.entities.User;
+import dev.thangngo.lmssoftdreams.entities.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -24,7 +24,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getPassword() {
-        return user.getPasswordHash();
+        return user.getPassword();
     }
 
     @Override

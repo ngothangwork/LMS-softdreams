@@ -5,17 +5,18 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Entity
+@Table(name = "categories")
 @Getter
 @Setter
-@Table(name = "types")
-public class Type {
-
+public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
-    @Column(name = "name", nullable = false)
+    @Column(nullable = false, unique = true, length = 100)
     private String name;
 
+    @Column(nullable = false, length = 100)
+    private String description;
 }
+

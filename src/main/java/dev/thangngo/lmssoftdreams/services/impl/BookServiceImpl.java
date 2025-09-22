@@ -1,4 +1,185 @@
 package dev.thangngo.lmssoftdreams.services.impl;
 
-public class BookServiceImpl {
+import dev.thangngo.lmssoftdreams.dtos.request.book.BookCreateRequest;
+import dev.thangngo.lmssoftdreams.dtos.request.book.BookSearchRequest;
+import dev.thangngo.lmssoftdreams.dtos.request.book.BookUpdateRequest;
+import dev.thangngo.lmssoftdreams.dtos.response.book.BookResponse;
+import dev.thangngo.lmssoftdreams.entities.Author;
+import dev.thangngo.lmssoftdreams.entities.Book;
+import dev.thangngo.lmssoftdreams.entities.Category;
+import dev.thangngo.lmssoftdreams.entities.Publisher;
+import dev.thangngo.lmssoftdreams.enums.ErrorCode;
+import dev.thangngo.lmssoftdreams.exceptions.AppException;
+import dev.thangngo.lmssoftdreams.mappers.BookMapper;
+import dev.thangngo.lmssoftdreams.repositories.AuthorRepository;
+import dev.thangngo.lmssoftdreams.repositories.BookRepository;
+import dev.thangngo.lmssoftdreams.repositories.CategoryRepository;
+import dev.thangngo.lmssoftdreams.repositories.PublisherRepository;
+import dev.thangngo.lmssoftdreams.services.BookService;
+
+import org.springframework.data.domain.Pageable;
+import java.util.Collections;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
+@Transactional
+public class BookServiceImpl implements BookService {
+
+    private final BookRepository bookRepository;
+    private final BookMapper bookMapper;
+    private final AuthorRepository authorRepository;
+    private final CategoryRepository categoryRepository;
+    private final PublisherRepository publisherRepository;
+
+    public BookServiceImpl(BookRepository bookRepository,
+                           BookMapper bookMapper, AuthorRepository authorRepository, CategoryRepository categoryRepository, PublisherRepository publisherRepository) {
+        this.bookRepository = bookRepository;
+        this.bookMapper = bookMapper;
+        this.authorRepository = authorRepository;
+        this.categoryRepository = categoryRepository;
+        this.publisherRepository = publisherRepository;
+    }
+
+    @Override
+    public BookResponse createBook(BookCreateRequest request) {
+        Set<Author> authors = loadAuthorsOrThrow(request.getAuthorIds());
+        Set<Category> categories = loadCategoriesOrThrow(request.getCategoryIds());
+        Publisher publisher = loadPublisherOrThrow(request.getPublisherId());
+
+        if(bookRepository.existsByIsbn(request.getIsbn())) {
+            throw new AppException(ErrorCode.ISBN_ALREADY_EXISTS);
+        }
+
+        Book book = bookMapper.toBook(request);
+        book.setAuthors(authors);
+        book.setCategories(categories);
+        book.setPublisher(publisher);
+
+        return bookMapper.toBookResponse(bookRepository.save(book));
+    }
+
+    @Override
+    public BookResponse updateBook(Long id, BookUpdateRequest request) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
+
+        Set<Author> authors = loadAuthorsOrThrow(request.getAuthorIds());
+        book.setAuthors(authors);
+
+        Set<Category> categories = loadCategoriesOrThrow(request.getCategoryIds());
+        book.setCategories(categories);
+
+        Publisher publisher = loadPublisherOrThrow(request.getPublisherId());
+        if (publisher != null) book.setPublisher(publisher);
+
+        if(bookRepository.existsByIsbn(request.getIsbn())) {
+            throw new AppException(ErrorCode.ISBN_ALREADY_EXISTS);
+        }
+        bookMapper.updateBookFromDto(request, book);
+
+        return bookMapper.toBookResponse(bookRepository.save(book));
+    }
+
+
+
+    @Override
+    public void deleteBook(Long id) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
+        bookRepository.delete(book);
+    }
+
+    @Override
+    public BookResponse getBookById(Long id) {
+        return bookRepository.findById(id)
+                .map(bookMapper::toBookResponse)
+                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
+    }
+
+    @Override
+    public List<BookResponse> getAllBooks() {
+        return bookRepository.findAll()
+                .stream()
+                .map(bookMapper::toBookResponse)
+                .toList();
+    }
+
+    @Override
+    public List<BookResponse> getBooksByName(String name) {
+        return bookRepository.findAll()
+                .stream()
+                .filter(b -> b.getName().toLowerCase().contains(name.toLowerCase()))
+                .map(bookMapper::toBookResponse)
+                .toList();
+    }
+
+    @Override
+    public Page<BookResponse> filterBooks(BookSearchRequest request, Pageable pageable) {
+        List<Book> books;
+        long total;
+
+        switch (request.getType().toLowerCase()) {
+            case "name" -> {
+                books = bookRepository.searchByName(request.getKeyWord(), pageable);
+                total = bookRepository.countByName(request.getKeyWord());
+            }
+            case "author" -> {
+                books = bookRepository.searchByAuthor(request.getKeyWord(), pageable);
+                total = bookRepository.countByAuthor(request.getKeyWord());
+            }
+            case "category" -> {
+                books = bookRepository.searchByCategory(request.getKeyWord(), pageable);
+                total = bookRepository.countByCategory(request.getKeyWord());
+            }
+            case "publisher" -> {
+                books = bookRepository.searchByPublisher(request.getKeyWord(), pageable);
+                total = bookRepository.countByPublisher(request.getKeyWord());
+            }
+            default -> throw new IllegalArgumentException("Invalid search type: " + request.getType());
+        }
+
+        List<BookResponse> responses = books.stream()
+                .map(bookMapper::toBookResponse)
+                .toList();
+
+        return new PageImpl<>(responses, pageable, total);
+    }
+
+
+
+
+    private Set<Author> loadAuthorsOrThrow(Set<Long> authorIds) {
+        if (authorIds == null || authorIds.isEmpty()) return Collections.emptySet();
+        List<Author> authors = authorRepository.findAllById(authorIds);
+        Set<Long> foundIds = authors.stream().map(Author::getId).collect(Collectors.toSet());
+        Set<Long> notFound = new HashSet<>(authorIds);
+        notFound.removeAll(foundIds);
+        if (!notFound.isEmpty()) throw new AppException(ErrorCode.AUTHOR_NOT_FOUND);
+        return new HashSet<>(authors);
+    }
+
+    private Set<Category> loadCategoriesOrThrow(Set<Long> categoryIds) {
+        if (categoryIds == null || categoryIds.isEmpty()) return Collections.emptySet();
+        List<Category> categories = categoryRepository.findAllById(categoryIds);
+        Set<Long> foundIds = categories.stream().map(Category::getId).collect(Collectors.toSet());
+        Set<Long> notFound = new HashSet<>(categoryIds);
+        notFound.removeAll(foundIds);
+        if (!notFound.isEmpty()) throw new AppException(ErrorCode.CATEGORY_NOT_FOUND);
+        return new HashSet<>(categories);
+    }
+
+    private Publisher loadPublisherOrThrow(Long publisherId) {
+        if (publisherId == null) return null;
+        return publisherRepository.findById(publisherId)
+                .orElseThrow(() -> new AppException(ErrorCode.PUBLISHER_NOT_FOUND));
+    }
 }

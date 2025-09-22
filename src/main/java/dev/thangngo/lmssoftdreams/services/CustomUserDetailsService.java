@@ -1,7 +1,7 @@
-package dev.thangngo.travelmate.services;
+package dev.thangngo.lmssoftdreams.services;
 
-import dev.thangngo.travelmate.repositories.UserRepository;
-import dev.thangngo.travelmate.sercurities.CustomUserDetails;
+import dev.thangngo.lmssoftdreams.repositories.UserRepository;
+import dev.thangngo.lmssoftdreams.securities.CustomUserDetails;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,10 +17,10 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return userRepository.findByEmail(email)
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        return userRepository.findByUsername(username)
                 .map(CustomUserDetails::new)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + username));
     }
 }
 

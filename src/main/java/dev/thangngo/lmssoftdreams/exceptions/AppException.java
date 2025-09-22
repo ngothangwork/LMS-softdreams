@@ -1,5 +1,6 @@
-package dev.thangngo.travelmate.exceptions;
+package dev.thangngo.lmssoftdreams.exceptions;
 
+import dev.thangngo.lmssoftdreams.enums.ErrorCode;
 import lombok.Getter;
 
 @Getter
