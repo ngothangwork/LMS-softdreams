@@ -24,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.HashSet;
 import java.util.List;
@@ -71,22 +72,31 @@ public class BookServiceImpl implements BookService {
     public BookResponse updateBook(Long id, BookUpdateRequest request) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
-
-        Set<Author> authors = loadAuthorsOrThrow(request.getAuthorIds());
-        book.setAuthors(authors);
-
-        Set<Category> categories = loadCategoriesOrThrow(request.getCategoryIds());
-        book.setCategories(categories);
-
-        Publisher publisher = loadPublisherOrThrow(request.getPublisherId());
-        if (publisher != null) book.setPublisher(publisher);
-
-        if(bookRepository.existsByIsbn(request.getIsbn())) {
-            throw new AppException(ErrorCode.ISBN_ALREADY_EXISTS);
+        if (StringUtils.hasText(request.getIsbn()) && !request.getIsbn().equals(book.getIsbn())) {
+            if (bookRepository.existsByIsbnAndIdNot(request.getIsbn(), id)) {
+                throw new AppException(ErrorCode.ISBN_ALREADY_EXISTS);
+            }
         }
+
         bookMapper.updateBookFromDto(request, book);
 
-        return bookMapper.toBookResponse(bookRepository.save(book));
+        if (request.getAuthorIds() != null) {
+            Set<Author> authors = loadAuthorsOrThrow(request.getAuthorIds());
+            book.setAuthors(authors);
+        }
+
+        if (request.getCategoryIds() != null) {
+            Set<Category> categories = loadCategoriesOrThrow(request.getCategoryIds());
+            book.setCategories(categories);
+        }
+
+        if (request.getPublisherId() != null) {
+            Publisher publisher = loadPublisherOrThrow(request.getPublisherId());
+            book.setPublisher(publisher);
+        }
+
+        Book saved = bookRepository.save(book);
+        return bookMapper.toBookResponse(saved);
     }
 
 
@@ -153,8 +163,6 @@ public class BookServiceImpl implements BookService {
 
         return new PageImpl<>(responses, pageable, total);
     }
-
-
 
 
     private Set<Author> loadAuthorsOrThrow(Set<Long> authorIds) {

@@ -3,6 +3,7 @@ package dev.thangngo.lmssoftdreams.services;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,20 +22,19 @@ public class FileStorageService {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("File is empty");
         }
-
-        // Tạo thư mục nếu chưa có
         File dir = new File(uploadDir);
         if (!dir.exists()) {
             dir.mkdirs();
         }
-
-        // Đặt tên file random để tránh trùng
         String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
         Path path = Paths.get(uploadDir, fileName);
 
         Files.copy(file.getInputStream(), path);
 
-        // Trả về URL public (vd: http://localhost:8080/uploads/...)
-        return "/uploads/" + fileName;
+        return ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/uploads/")
+                .path(fileName)
+                .toUriString();
+
     }
 }

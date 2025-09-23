@@ -42,7 +42,7 @@ public class BookController {
                         .build());
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<BookResponse>> updateBook(
             @PathVariable Long id,
             @Valid @RequestBody BookUpdateRequest request) {
