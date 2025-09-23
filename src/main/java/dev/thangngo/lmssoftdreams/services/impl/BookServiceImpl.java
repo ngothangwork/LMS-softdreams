@@ -139,22 +139,27 @@ public class BookServiceImpl implements BookService {
 
         switch (request.getType().toLowerCase()) {
             case "name" -> {
-                books = bookRepository.searchByName(request.getKeyWord(), pageable);
-                total = bookRepository.countByName(request.getKeyWord());
+                books = bookRepository.searchByName(request.getKeyword(), pageable);
+                total = bookRepository.countByName(request.getKeyword());
             }
             case "author" -> {
-                books = bookRepository.searchByAuthor(request.getKeyWord(), pageable);
-                total = bookRepository.countByAuthor(request.getKeyWord());
+                books = bookRepository.searchByAuthor(request.getKeyword(), pageable);
+                total = bookRepository.countByAuthor(request.getKeyword());
             }
             case "category" -> {
-                books = bookRepository.searchByCategory(request.getKeyWord(), pageable);
-                total = bookRepository.countByCategory(request.getKeyWord());
+                books = bookRepository.searchByCategory(request.getKeyword(), pageable);
+                total = bookRepository.countByCategory(request.getKeyword());
             }
             case "publisher" -> {
-                books = bookRepository.searchByPublisher(request.getKeyWord(), pageable);
-                total = bookRepository.countByPublisher(request.getKeyWord());
+                books = bookRepository.searchByPublisher(request.getKeyword(), pageable);
+                total = bookRepository.countByPublisher(request.getKeyword());
             }
             default -> throw new IllegalArgumentException("Invalid search type: " + request.getType());
+        }
+
+        if (request.getKeyword() == null || request.getKeyword().isBlank()) {
+            books = bookRepository.findAll(pageable).toList();
+            total = bookRepository.count();
         }
 
         List<BookResponse> responses = books.stream()

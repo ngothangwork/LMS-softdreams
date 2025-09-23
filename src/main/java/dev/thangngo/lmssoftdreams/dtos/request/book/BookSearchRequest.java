@@ -10,5 +10,5 @@ public class BookSearchRequest {
 
     @NotNull(message = "Type is required")
     private String type;
-    private String keyWord;
+    private String keyword;
 }
