@@ -2,6 +2,7 @@ package dev.thangngo.lmssoftdreams.mappers;
 
 import dev.thangngo.lmssoftdreams.dtos.request.book.BookCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.book.BookUpdateRequest;
+import dev.thangngo.lmssoftdreams.dtos.response.book.BookDetailResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.book.BookResponse;
 import dev.thangngo.lmssoftdreams.entities.Author;
 import dev.thangngo.lmssoftdreams.entities.Book;
@@ -27,6 +28,8 @@ public interface BookMapper {
     @Mapping(target = "authorIds", source = "authors", qualifiedByName = "mapAuthorIds")
     @Mapping(target = "categoryIds", source = "categories", qualifiedByName = "mapCategoryIds")
     BookResponse toBookResponse(Book book);
+
+    BookDetailResponse toBookDetailResponse(Book book);
 
     void updateBookFromDto(BookUpdateRequest request, @MappingTarget Book book);
 

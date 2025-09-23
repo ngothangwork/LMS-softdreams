@@ -14,7 +14,11 @@ public class BookDetailResponse {
     private Long id;
     private String name;
     private String isbn;
+    private String avatar;
+    private String description;
     private PublisherResponse publisher;
     private Set<AuthorResponse> authors;
     private Set<CategoryResponse> categories;
+    private Integer numberOfBorrowed;
+    private Integer numberOfAvailable;
 }

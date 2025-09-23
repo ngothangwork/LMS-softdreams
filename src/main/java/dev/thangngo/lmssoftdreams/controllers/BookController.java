@@ -4,6 +4,7 @@ import dev.thangngo.lmssoftdreams.dtos.request.book.BookCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.book.BookSearchRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.book.BookUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.ApiResponse;
+import dev.thangngo.lmssoftdreams.dtos.response.book.BookDetailResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.book.BookResponse;
 import dev.thangngo.lmssoftdreams.services.BookService;
 import jakarta.validation.Valid;
@@ -69,9 +70,9 @@ public class BookController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<BookResponse>> getBookById(@PathVariable Long id) {
-        BookResponse response = bookService.getBookById(id);
-        return ResponseEntity.ok(ApiResponse.<BookResponse>builder()
+    public ResponseEntity<ApiResponse<BookDetailResponse>> getBookById(@PathVariable Long id) {
+        BookDetailResponse response = bookService.getBookById(id);
+        return ResponseEntity.ok(ApiResponse.<BookDetailResponse>builder()
                 .message("Book fetched successfully")
                 .code(200)
                 .success(true)

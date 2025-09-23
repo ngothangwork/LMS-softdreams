@@ -3,18 +3,14 @@ package dev.thangngo.lmssoftdreams.services.impl;
 import dev.thangngo.lmssoftdreams.dtos.request.book.BookCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.book.BookSearchRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.book.BookUpdateRequest;
+import dev.thangngo.lmssoftdreams.dtos.response.book.BookDetailResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.book.BookResponse;
-import dev.thangngo.lmssoftdreams.entities.Author;
-import dev.thangngo.lmssoftdreams.entities.Book;
-import dev.thangngo.lmssoftdreams.entities.Category;
-import dev.thangngo.lmssoftdreams.entities.Publisher;
+import dev.thangngo.lmssoftdreams.entities.*;
+import dev.thangngo.lmssoftdreams.enums.BookStatus;
 import dev.thangngo.lmssoftdreams.enums.ErrorCode;
 import dev.thangngo.lmssoftdreams.exceptions.AppException;
 import dev.thangngo.lmssoftdreams.mappers.BookMapper;
-import dev.thangngo.lmssoftdreams.repositories.AuthorRepository;
-import dev.thangngo.lmssoftdreams.repositories.BookRepository;
-import dev.thangngo.lmssoftdreams.repositories.CategoryRepository;
-import dev.thangngo.lmssoftdreams.repositories.PublisherRepository;
+import dev.thangngo.lmssoftdreams.repositories.*;
 import dev.thangngo.lmssoftdreams.services.BookService;
 
 import org.springframework.data.domain.Pageable;
@@ -40,14 +36,20 @@ public class BookServiceImpl implements BookService {
     private final AuthorRepository authorRepository;
     private final CategoryRepository categoryRepository;
     private final PublisherRepository publisherRepository;
+    private final BookCopyRepository bookCopyRepository;
 
     public BookServiceImpl(BookRepository bookRepository,
-                           BookMapper bookMapper, AuthorRepository authorRepository, CategoryRepository categoryRepository, PublisherRepository publisherRepository) {
+                           BookMapper bookMapper,
+                           AuthorRepository authorRepository,
+                           CategoryRepository categoryRepository,
+                           PublisherRepository publisherRepository,
+                           BookCopyRepository bookCopyRepository) {
         this.bookRepository = bookRepository;
         this.bookMapper = bookMapper;
         this.authorRepository = authorRepository;
         this.categoryRepository = categoryRepository;
         this.publisherRepository = publisherRepository;
+        this.bookCopyRepository = bookCopyRepository;
     }
 
     @Override
@@ -99,8 +101,6 @@ public class BookServiceImpl implements BookService {
         return bookMapper.toBookResponse(saved);
     }
 
-
-
     @Override
     public void deleteBook(Long id) {
         Book book = bookRepository.findById(id)
@@ -109,10 +109,16 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookResponse getBookById(Long id) {
-        return bookRepository.findById(id)
-                .map(bookMapper::toBookResponse)
+    public BookDetailResponse getBookById(Long id) {
+
+        BookDetailResponse bookDetailResponse =  bookRepository.findById(id)
+                .map(bookMapper::toBookDetailResponse)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
+        int numberOfBookBorrow = bookCopyRepository.countByStatusAndBookId(BookStatus.UNAVAILABLE, id);
+        int numberOfBookAvailable = bookCopyRepository.countByStatusAndBookId(BookStatus.AVAILABLE, id);
+        bookDetailResponse.setNumberOfAvailable(numberOfBookAvailable);
+        bookDetailResponse.setNumberOfBorrowed(numberOfBookBorrow);
+        return bookDetailResponse;
     }
 
     @Override
