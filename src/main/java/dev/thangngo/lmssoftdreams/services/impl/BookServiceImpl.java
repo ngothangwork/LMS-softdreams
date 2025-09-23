@@ -70,6 +70,7 @@ public class BookServiceImpl implements BookService {
         return bookMapper.toBookResponse(bookRepository.save(book));
     }
 
+
     @Override
     public BookResponse updateBook(Long id, BookUpdateRequest request) {
         Book book = bookRepository.findById(id)
@@ -136,6 +137,13 @@ public class BookServiceImpl implements BookService {
                 .filter(b -> b.getName().toLowerCase().contains(name.toLowerCase()))
                 .map(bookMapper::toBookResponse)
                 .toList();
+    }
+
+    @Override
+    public BookResponse getBookUpdateById(Long id) {
+        return bookRepository.findById(id)
+                .map(bookMapper::toBookResponse)
+                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
     }
 
     @Override

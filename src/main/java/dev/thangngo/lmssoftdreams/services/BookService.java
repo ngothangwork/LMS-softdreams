@@ -17,5 +17,6 @@ public interface BookService {
     BookDetailResponse getBookById(Long id);
     List<BookResponse> getAllBooks();
     List<BookResponse> getBooksByName(String name);
+    BookResponse getBookUpdateById(Long id);
     Page<BookResponse> filterBooks(BookSearchRequest request, Pageable pageable);
 }
