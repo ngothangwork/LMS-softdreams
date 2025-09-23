@@ -35,17 +35,18 @@ public class PublisherController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<List<PublisherResponse>>> getPublisherByName(@RequestParam String name) {
+    public ResponseEntity<ApiResponse<List<PublisherResponse>>> searchPublishers(@RequestParam String name) {
         List<PublisherResponse> publishers = publisherService.getPublisherByName(name);
         return ResponseEntity.ok(
                 ApiResponse.<List<PublisherResponse>>builder()
-                        .message("Get publisher by name: " + name)
+                        .message("Search publishers by name: " + name)
                         .code(200)
                         .success(true)
                         .result(publishers)
                         .build()
         );
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<PublisherResponse>> getPublisherById(@PathVariable Long id) {
