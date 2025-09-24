@@ -46,5 +46,19 @@ public class AuthController {
                         .build());
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<String>> refresh(@RequestBody String refreshToken) {
+        String newAccessToken = authService.refreshToken(refreshToken);
+        return ResponseEntity.ok(
+                ApiResponse.<String>builder()
+                        .success(true)
+                        .code(200)
+                        .message("Token refreshed")
+                        .result(newAccessToken)
+                        .build()
+        );
+    }
+
+
 
 }

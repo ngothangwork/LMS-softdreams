@@ -14,7 +14,6 @@ import dev.thangngo.lmssoftdreams.securities.JwtUtil;
 import dev.thangngo.lmssoftdreams.services.AuthService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -37,19 +36,24 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    @Cacheable(value = "users", key = "#username")
     public LoginResponse login(String username, String password) {
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new AppException(ErrorCode.PASS_WORD_NOT_MATCH);
         }
+
         LoginResponse loginResponse = new LoginResponse();
         loginResponse.setUserId(user.getId());
         loginResponse.setUsername(user.getUsername());
         loginResponse.setFullName(user.getFullName());
-        loginResponse.setToken(jwtUtil.generateToken(user.getUsername()));
+        loginResponse.setToken(jwtUtil.generateAccessToken(user.getUsername()));
+        loginResponse.setRefreshToken(jwtUtil.generateRefreshToken(user.getUsername()));
+
         return loginResponse;
     }
+
 
     @Override
     public UserResponse register(RegisterRequest registerRequest) {
@@ -71,6 +75,11 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String refreshToken(String refreshToken) {
-        return "";
+        if (!jwtUtil.validateToken(refreshToken)) {
+            throw new AppException(ErrorCode.INVALID_TOKEN);
+        }
+        String username = jwtUtil.getUsernameFromToken(refreshToken);
+        return jwtUtil.generateAccessToken(username);
     }
+
 }

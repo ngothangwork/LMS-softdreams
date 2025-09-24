@@ -38,7 +38,8 @@ public enum ErrorCode {
     ISBN_ALREADY_EXISTS(1027, "ISBN đã tồn tại", HttpStatus.CONFLICT),
     BOOK_COPY_NOT_AVAILABLE(1028, "Bản sao sách không có sẵn", HttpStatus.CONFLICT),
     BOOK_COPY_NOT_FOUND_OR_NOT_AVAILABLE(1029, "Không tìm thấy hoặc bản sao sách không có sẵn", HttpStatus.NOT_FOUND),
-    START_DATE_BEFORE_CURRENT_DATE(1030, "Ngày bắt đầu phải sau ngày hiện tại", HttpStatus.BAD_REQUEST);
+    START_DATE_BEFORE_CURRENT_DATE(1030, "Ngày bắt đầu phải sau ngày hiện tại", HttpStatus.BAD_REQUEST),
+    INVALID_TOKEN(1031, "Token không hợp lệ", HttpStatus.BAD_REQUEST);
 
     private final int code;
     private final String message;
