@@ -10,12 +10,13 @@ import java.util.Set;
 @Table(name = "books")
 @Getter
 @Setter
+
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false, columnDefinition = "NVARCHAR(MAX)")
     private String name;
 
     @Column(nullable = false, unique = true, length = 50)

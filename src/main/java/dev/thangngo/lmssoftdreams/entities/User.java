@@ -34,8 +34,12 @@ public class User {
     private UserRole role;
 
     private String avatar;
+
+    @Column(name = "full_name", nullable = false, columnDefinition = "NVARCHAR(MAX)")
     private String fullName;
     private String phoneNumber;
+
+    @Column(name = "address", columnDefinition = "NVARCHAR(MAX)")
     private String address;
 
     private LocalDate dob;

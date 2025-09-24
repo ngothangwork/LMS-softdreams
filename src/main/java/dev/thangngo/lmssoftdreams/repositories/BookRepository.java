@@ -16,7 +16,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     @EntityGraph(attributePaths = {"authors", "categories", "publisher"})
     @Query("""
         SELECT b FROM Book b
-        WHERE (:name IS NULL OR LOWER(b.name) LIKE LOWER(CONCAT('%', :name, '%')))
+        WHERE (:name IS NULL OR b.name LIKE LOWER(CONCAT('%', :name, '%')))
         """)
     List<Book> searchByName(@Param("name") String name, Pageable pageable);
 

@@ -15,16 +15,16 @@ public class Author {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 100 , columnDefinition = "NVARCHAR(MAX)")
     private String name;
 
     @Column(nullable = false, length = 100)
     private LocalDate dob;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 100, columnDefinition = "NVARCHAR(MAX)")
     private String nationality;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "NVARCHAR(MAX)")
     private String description;
 }
 
