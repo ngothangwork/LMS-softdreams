@@ -44,6 +44,7 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(ErrorCode.PASS_WORD_NOT_MATCH);
         }
         LoginResponse loginResponse = new LoginResponse();
+        loginResponse.setUserId(user.getId());
         loginResponse.setUsername(user.getUsername());
         loginResponse.setFullName(user.getFullName());
         loginResponse.setToken(jwtUtil.generateToken(user.getUsername()));

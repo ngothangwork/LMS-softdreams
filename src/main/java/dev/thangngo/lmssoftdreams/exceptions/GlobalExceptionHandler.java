@@ -19,10 +19,10 @@ public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(AppException.class)
-    public ResponseEntity<ApiResponse<String>> handleAppException(AppException e) {
+    public ResponseEntity<ApiResponse<List<String>>> handleAppException(AppException e) {
         log.warn("AppException: {}", e.getMessage());
         ErrorCode errorCode = e.getErrorCode();
-        return buildResponse(errorCode, errorCode.getMessage(), errorCode.getStatus());
+        return buildResponse(errorCode, errorCode.getMessage(), errorCode.getStatus(), List.of(e.getMessage()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -35,60 +35,79 @@ public class GlobalExceptionHandler {
                 .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
                 .toList();
 
-        ApiResponse<List<String>> apiResponse = ApiResponse.<List<String>>builder()
-                .success(false)
-                .code(ErrorCode.VALIDATION_FAILED.getCode())
-                .message(ErrorCode.VALIDATION_FAILED.getMessage())
-                .result(errors)
-                .build();
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiResponse);
+        return buildResponse(ErrorCode.VALIDATION_FAILED,
+                ErrorCode.VALIDATION_FAILED.getMessage(),
+                HttpStatus.BAD_REQUEST,
+                errors);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<ApiResponse<String>> handleConstraintViolationException(ConstraintViolationException e) {
+    public ResponseEntity<ApiResponse<List<String>>> handleConstraintViolationException(ConstraintViolationException e) {
         log.warn("Constraint violation: {}", e.getMessage());
-        return buildResponse(ErrorCode.CONSTRAINT_VIOLATION, e.getMessage(), HttpStatus.BAD_REQUEST);
+        return buildResponse(ErrorCode.CONSTRAINT_VIOLATION,
+                e.getMessage(),
+                HttpStatus.BAD_REQUEST,
+                List.of(e.getMessage()));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiResponse<String>> handleIllegalArgumentException(IllegalArgumentException e) {
+    public ResponseEntity<ApiResponse<List<String>>> handleIllegalArgumentException(IllegalArgumentException e) {
         log.warn("Illegal argument: {}", e.getMessage());
-        return buildResponse(ErrorCode.ILLEGAL_ARGUMENT, e.getMessage(), HttpStatus.BAD_REQUEST);
+        return buildResponse(ErrorCode.ILLEGAL_ARGUMENT,
+                e.getMessage(),
+                HttpStatus.BAD_REQUEST,
+                List.of(e.getMessage()));
     }
 
     @ExceptionHandler(NullPointerException.class)
-    public ResponseEntity<ApiResponse<String>> handleNullPointerException(NullPointerException e) {
+    public ResponseEntity<ApiResponse<List<String>>> handleNullPointerException(NullPointerException e) {
         log.error("Null pointer exception: ", e);
-        return buildResponse(ErrorCode.NULL_POINTER, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        return buildResponse(ErrorCode.NULL_POINTER,
+                e.getMessage(),
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                List.of(e.getMessage()));
     }
 
     @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ApiResponse<String>> handleIllegalStateException(IllegalStateException e) {
+    public ResponseEntity<ApiResponse<List<String>>> handleIllegalStateException(IllegalStateException e) {
         log.error("Illegal state exception: ", e);
-        return buildResponse(ErrorCode.ILLEGAL_STATE, e.getMessage(), HttpStatus.CONFLICT);
+        return buildResponse(ErrorCode.ILLEGAL_STATE,
+                e.getMessage(),
+                HttpStatus.CONFLICT,
+                List.of(e.getMessage()));
     }
 
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiResponse<String>> handleRuntimeException(RuntimeException e) {
+    public ResponseEntity<ApiResponse<List<String>>> handleRuntimeException(RuntimeException e) {
         log.error("Runtime exception: ", e);
-        return buildResponse(ErrorCode.RUNTIME_ERROR, e.getMessage(), HttpStatus.BAD_REQUEST);
+        return buildResponse(ErrorCode.RUNTIME_ERROR,
+                e.getMessage(),
+                HttpStatus.BAD_REQUEST,
+                List.of(e.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse<String>> handleGeneralException(Exception e) {
+    public ResponseEntity<ApiResponse<List<String>>> handleGeneralException(Exception e) {
         log.error("Unexpected exception: ", e);
-        return buildResponse(ErrorCode.UNEXPECTED_ERROR, e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        return buildResponse(ErrorCode.UNEXPECTED_ERROR,
+                e.getMessage(),
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                List.of(e.getMessage()));
     }
 
-    private ResponseEntity<ApiResponse<String>> buildResponse(ErrorCode errorCode, String message, HttpStatus status) {
-        ApiResponse<String> apiResponse = ApiResponse.<String>builder()
+    private ResponseEntity<ApiResponse<List<String>>> buildResponse(
+            ErrorCode errorCode,
+            String message,
+            HttpStatus status,
+            List<String> errors
+    ) {
+        ApiResponse<List<String>> apiResponse = ApiResponse.<List<String>>builder()
                 .success(false)
                 .code(errorCode.getCode())
                 .message(message != null ? message : errorCode.getMessage())
+                .result(errors)
                 .build();
+
         return ResponseEntity.status(status).body(apiResponse);
     }
-
-
 }
