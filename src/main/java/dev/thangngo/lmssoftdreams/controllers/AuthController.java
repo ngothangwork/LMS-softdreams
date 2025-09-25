@@ -1,6 +1,7 @@
 package dev.thangngo.lmssoftdreams.controllers;
 
 import dev.thangngo.lmssoftdreams.dtos.request.auth.LoginRequest;
+import dev.thangngo.lmssoftdreams.dtos.request.auth.RefreshTokenRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.auth.RegisterRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.ApiResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.login.LoginResponse;
@@ -47,8 +48,8 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<String>> refresh(@RequestBody String refreshToken) {
-        String newAccessToken = authService.refreshToken(refreshToken);
+    public ResponseEntity<ApiResponse<String>> refresh(@RequestBody RefreshTokenRequest request) {
+        String newAccessToken = authService.refreshToken(request.getRefreshToken());
         return ResponseEntity.ok(
                 ApiResponse.<String>builder()
                         .success(true)
@@ -58,6 +59,7 @@ public class AuthController {
                         .build()
         );
     }
+
 
 
 
