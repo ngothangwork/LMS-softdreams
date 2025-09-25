@@ -2,7 +2,7 @@ package dev.thangngo.lmssoftdreams.config;
 
 import dev.thangngo.lmssoftdreams.entities.User;
 import dev.thangngo.lmssoftdreams.enums.UserRole;
-import dev.thangngo.lmssoftdreams.repositories.UserRepository;
+import dev.thangngo.lmssoftdreams.repositories.users.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

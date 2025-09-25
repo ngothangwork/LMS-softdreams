@@ -7,7 +7,7 @@ import dev.thangngo.lmssoftdreams.entities.Publisher;
 import dev.thangngo.lmssoftdreams.enums.ErrorCode;
 import dev.thangngo.lmssoftdreams.exceptions.AppException;
 import dev.thangngo.lmssoftdreams.mappers.PublisherMapper;
-import dev.thangngo.lmssoftdreams.repositories.PublisherRepository;
+import dev.thangngo.lmssoftdreams.repositories.publishers.PublisherRepository;
 import dev.thangngo.lmssoftdreams.services.PublisherService;
 import org.springframework.stereotype.Service;
 

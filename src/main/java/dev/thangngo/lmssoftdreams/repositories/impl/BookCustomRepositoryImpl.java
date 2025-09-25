@@ -1,7 +1,7 @@
 package dev.thangngo.lmssoftdreams.repositories.impl;
 
 import dev.thangngo.lmssoftdreams.entities.Book;
-import dev.thangngo.lmssoftdreams.repositories.BookCustomRepository;
+import dev.thangngo.lmssoftdreams.repositories.books.BookCustomRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.data.domain.Pageable;

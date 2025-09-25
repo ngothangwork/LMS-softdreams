@@ -1,6 +1,6 @@
 package dev.thangngo.lmssoftdreams.services;
 
-import dev.thangngo.lmssoftdreams.repositories.UserRepository;
+import dev.thangngo.lmssoftdreams.repositories.users.UserRepository;
 import dev.thangngo.lmssoftdreams.securities.CustomUserDetails;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

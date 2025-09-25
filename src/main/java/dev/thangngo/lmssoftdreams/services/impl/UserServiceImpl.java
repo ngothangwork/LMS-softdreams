@@ -9,7 +9,7 @@ import dev.thangngo.lmssoftdreams.enums.UserStatus;
 import dev.thangngo.lmssoftdreams.exceptions.AppException;
 import dev.thangngo.lmssoftdreams.enums.ErrorCode;
 import dev.thangngo.lmssoftdreams.mappers.UserMapper;
-import dev.thangngo.lmssoftdreams.repositories.UserRepository;
+import dev.thangngo.lmssoftdreams.repositories.users.UserRepository;
 import dev.thangngo.lmssoftdreams.services.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.security.crypto.password.PasswordEncoder;

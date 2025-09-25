@@ -6,6 +6,10 @@ import dev.thangngo.lmssoftdreams.dtos.response.ApiResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.author.AuthorResponse;
 import dev.thangngo.lmssoftdreams.services.AuthorService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +37,7 @@ public class AuthorController {
                 .build());
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<AuthorResponse>> updateAuthor(@Valid @RequestBody AuthorUpdateRequest authorUpdateRequest, @PathVariable Long id) {
         AuthorResponse authorResponse = authorService.updateAuthor(id, authorUpdateRequest);
         return ResponseEntity.ok(ApiResponse.<AuthorResponse>builder()
@@ -44,18 +48,6 @@ public class AuthorController {
                 .build());
     }
 
-    @GetMapping("/name/{name}")
-    public ResponseEntity<ApiResponse<List<AuthorResponse>>> getAuthorByName(@PathVariable String name) {
-        List<AuthorResponse> authorResponseList = authorService.getAuthorByName(name);
-        return ResponseEntity.ok(
-                ApiResponse.<List<AuthorResponse>>builder()
-                        .message("Get list author contain string " + name)
-                        .code(200)
-                        .success(true)
-                        .result(authorResponseList)
-                        .build()
-        );
-    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> deleteAuthor(@PathVariable Long id) {
@@ -64,6 +56,21 @@ public class AuthorController {
                 .message("Delete Author Successfully")
                 .code(200)
                 .success(true)
+                .build());
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<Page<AuthorResponse>>> searchAuthor(
+            @RequestParam String name,
+            @PageableDefault(size = 10, page = 0, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
+
+        Page<AuthorResponse> page = authorService.getAuthorByName(name, pageable);
+
+        return ResponseEntity.ok(ApiResponse.<Page<AuthorResponse>>builder()
+                .message("Search author by name: " + name)
+                .code(200)
+                .success(true)
+                .result(page)
                 .build());
     }
 

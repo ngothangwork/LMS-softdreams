@@ -1,4 +1,4 @@
-package dev.thangngo.lmssoftdreams.repositories;
+package dev.thangngo.lmssoftdreams.repositories.borrows;
 
 import dev.thangngo.lmssoftdreams.entities.Borrow;
 import org.springframework.data.jpa.repository.JpaRepository;
