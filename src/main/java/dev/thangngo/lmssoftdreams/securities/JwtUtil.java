@@ -13,7 +13,7 @@ import java.util.Date;
 public class JwtUtil {
 
     private final String SECRET = "very_secret_key_12345678901234567890";
-    private final long ACCESS_EXPIRATION = 1000 * 60 * 15; // 15 phút
+    private final long ACCESS_EXPIRATION = 1000 * 60 * 15000; // 15 phút
     private final long REFRESH_EXPIRATION = 1000L * 60 * 60 * 24 * 7; // 7 ngày
 
     private Key getSigningKey() {

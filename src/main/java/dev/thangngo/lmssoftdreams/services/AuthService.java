@@ -7,5 +7,5 @@ import dev.thangngo.lmssoftdreams.dtos.response.user.UserResponse;
 public interface AuthService {
     LoginResponse login(String username, String password);
     UserResponse register(RegisterRequest registerRequest);
-    String refreshToken(String refreshToken);
+    LoginResponse refreshToken(String refreshToken);
 }

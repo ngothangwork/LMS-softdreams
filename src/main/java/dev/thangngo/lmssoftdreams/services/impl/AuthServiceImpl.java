@@ -73,13 +73,25 @@ public class AuthServiceImpl implements AuthService {
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
-    @Override
-    public String refreshToken(String refreshToken) {
+    public LoginResponse refreshToken(String refreshToken) {
         if (!jwtUtil.validateToken(refreshToken)) {
-            throw new AppException(ErrorCode.INVALID_TOKEN);
+            throw new RuntimeException("Invalid refresh token");
         }
+
         String username = jwtUtil.getUsernameFromToken(refreshToken);
-        return jwtUtil.generateAccessToken(username);
+
+        String newAccessToken = jwtUtil.generateAccessToken(username);
+        String newRefreshToken = jwtUtil.generateRefreshToken(username);
+
+        LoginResponse loginResponse = new LoginResponse();
+        loginResponse.setUserId(userRepository.findByUsername(username).get().getId());
+        loginResponse.setUsername(username);
+        loginResponse.setFullName(userRepository.findByUsername(username).get().getFullName());
+        loginResponse.setToken(newAccessToken);
+        loginResponse.setRefreshToken(newRefreshToken);
+
+        return loginResponse;
     }
+
 
 }
