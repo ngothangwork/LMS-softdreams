@@ -3,6 +3,7 @@ package dev.thangngo.lmssoftdreams.services.impl;
 import dev.thangngo.lmssoftdreams.dtos.request.book.BookCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.book.BookSearchRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.book.BookUpdateRequest;
+import dev.thangngo.lmssoftdreams.dtos.response.PageResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.book.BookDetailResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.book.BookResponse;
 import dev.thangngo.lmssoftdreams.entities.*;
@@ -17,7 +18,10 @@ import dev.thangngo.lmssoftdreams.repositories.CategoryRepository;
 import dev.thangngo.lmssoftdreams.repositories.PublisherRepository;
 import dev.thangngo.lmssoftdreams.services.BookService;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Pageable;
+
 import java.util.Collections;
 
 import org.springframework.data.domain.Page;
@@ -57,12 +61,13 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @CacheEvict(value = "books", allEntries = true)
     public BookResponse createBook(BookCreateRequest request) {
         Set<Author> authors = loadAuthorsOrThrow(request.getAuthorIds());
         Set<Category> categories = loadCategoriesOrThrow(request.getCategoryIds());
         Publisher publisher = loadPublisherOrThrow(request.getPublisherId());
 
-        if(bookRepository.existsByIsbn(request.getIsbn())) {
+        if (bookRepository.existsByIsbn(request.getIsbn())) {
             throw new AppException(ErrorCode.ISBN_ALREADY_EXISTS);
         }
 
@@ -76,13 +81,12 @@ public class BookServiceImpl implements BookService {
 
 
     @Override
+    @CacheEvict(value = "books", allEntries = true)
     public BookResponse updateBook(Long id, BookUpdateRequest request) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
-        if (StringUtils.hasText(request.getIsbn()) && !request.getIsbn().equals(book.getIsbn())) {
-            if (bookRepository.existsByIsbnAndIdNot(request.getIsbn(), id)) {
-                throw new AppException(ErrorCode.ISBN_ALREADY_EXISTS);
-            }
+        if (StringUtils.hasText(request.getIsbn()) && !request.getIsbn().equals(book.getIsbn()) && bookRepository.existsByIsbnAndIdNot(request.getIsbn(), id)) {
+            throw new AppException(ErrorCode.ISBN_ALREADY_EXISTS);
         }
 
         bookMapper.updateBookFromDto(request, book);
@@ -107,6 +111,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @CacheEvict(value = "books-filter", allEntries = true)
     public void deleteBook(Long id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
@@ -115,8 +120,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookDetailResponse getBookById(Long id) {
-
-        BookDetailResponse bookDetailResponse =  bookRepository.findById(id)
+        BookDetailResponse bookDetailResponse = bookRepository.findById(id)
                 .map(bookMapper::toBookDetailResponse)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
         int numberOfBookBorrow = bookCopyRepository.countByStatusAndBookId(BookStatus.UNAVAILABLE, id);
@@ -135,6 +139,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    @Cacheable(value = "books", key = "#name")
     public List<BookResponse> getBooksByName(String name) {
         return bookRepository.findAll()
                 .stream()
@@ -151,7 +156,11 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public Page<BookResponse> filterBooks(BookSearchRequest request, Pageable pageable) {
+    @Cacheable(
+            value = "books-filter",
+            key = "{#request.type, #request.keyword, #pageable.pageNumber, #pageable.pageSize}"
+    )
+    public PageResponse<BookResponse> filterBooks(BookSearchRequest request, Pageable pageable) {
         List<Book> books;
         long total;
 
@@ -176,16 +185,21 @@ public class BookServiceImpl implements BookService {
         }
 
         if (request.getKeyword() == null || request.getKeyword().isBlank()) {
-            books = bookRepository.findAll(pageable).toList();
-            total = bookRepository.count();
+            var pageResult = bookRepository.findAll(pageable);
+            books = pageResult.getContent();
+            total = pageResult.getTotalElements();
         }
 
         List<BookResponse> responses = books.stream()
                 .map(bookMapper::toBookResponse)
                 .toList();
 
-        return new PageImpl<>(responses, pageable, total);
+        Page<BookResponse> page = new PageImpl<>(responses, pageable, total);
+
+        return new PageResponse<>(page);
     }
+
+
 
 
     private Set<Author> loadAuthorsOrThrow(Set<Long> authorIds) {

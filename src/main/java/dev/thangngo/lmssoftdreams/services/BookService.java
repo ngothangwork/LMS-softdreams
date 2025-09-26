@@ -3,6 +3,7 @@ package dev.thangngo.lmssoftdreams.services;
 import dev.thangngo.lmssoftdreams.dtos.request.book.BookCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.book.BookSearchRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.book.BookUpdateRequest;
+import dev.thangngo.lmssoftdreams.dtos.response.PageResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.book.BookDetailResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.book.BookResponse;
 import org.springframework.data.domain.Page;
@@ -18,5 +19,5 @@ public interface BookService {
     List<BookResponse> getAllBooks();
     List<BookResponse> getBooksByName(String name);
     BookResponse getBookUpdateById(Long id);
-    Page<BookResponse> filterBooks(BookSearchRequest request, Pageable pageable);
+    PageResponse<BookResponse> filterBooks(BookSearchRequest request, Pageable pageable);
 }

@@ -8,13 +8,14 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
+import java.io.Serializable;
 import java.util.Set;
 
 @Getter
 @Setter
 @RequiredArgsConstructor
 @AllArgsConstructor
-public class BookDetailResponse {
+public class BookDetailResponse implements Serializable {
     private Long id;
     private String name;
     private String isbn;

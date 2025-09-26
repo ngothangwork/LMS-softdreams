@@ -14,6 +14,7 @@ import dev.thangngo.lmssoftdreams.securities.JwtUtil;
 import dev.thangngo.lmssoftdreams.services.AuthService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 

@@ -4,6 +4,7 @@ import dev.thangngo.lmssoftdreams.dtos.request.book.BookCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.book.BookSearchRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.book.BookUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.ApiResponse;
+import dev.thangngo.lmssoftdreams.dtos.response.PageResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.book.BookDetailResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.book.BookResponse;
 import dev.thangngo.lmssoftdreams.services.BookService;
@@ -117,13 +118,13 @@ public class BookController {
     }
 
     @PostMapping("/search")
-    public ResponseEntity<ApiResponse<Page<BookResponse>>> searchBooks(
+    public ResponseEntity<ApiResponse<PageResponse<BookResponse>>> searchBooks(
             @RequestBody @Valid BookSearchRequest request,
             @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.ASC) Pageable pageable
     ) {
-        Page<BookResponse> result = bookService.filterBooks(request, pageable);
+        PageResponse<BookResponse> result = bookService.filterBooks(request, pageable);
         return ResponseEntity.ok(
-                ApiResponse.<Page<BookResponse>>builder()
+                ApiResponse.<PageResponse<BookResponse>>builder()
                         .success(true)
                         .code(200)
                         .message("Search books successfully")
