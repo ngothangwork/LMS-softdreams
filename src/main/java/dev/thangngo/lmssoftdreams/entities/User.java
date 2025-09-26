@@ -46,6 +46,7 @@ public class User {
 
     private String gender;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private UserStatus status;
 }

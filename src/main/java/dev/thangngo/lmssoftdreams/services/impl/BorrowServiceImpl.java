@@ -6,6 +6,7 @@ import dev.thangngo.lmssoftdreams.dtos.response.borrow.BorrowResponse;
 import dev.thangngo.lmssoftdreams.entities.BookCopy;
 import dev.thangngo.lmssoftdreams.entities.Borrow;
 import dev.thangngo.lmssoftdreams.enums.BookStatus;
+import dev.thangngo.lmssoftdreams.enums.BorrowStatus;
 import dev.thangngo.lmssoftdreams.enums.ErrorCode;
 import dev.thangngo.lmssoftdreams.exceptions.AppException;
 import dev.thangngo.lmssoftdreams.mappers.BorrowMapper;
@@ -13,11 +14,14 @@ import dev.thangngo.lmssoftdreams.repositories.BookCopyRepository;
 import dev.thangngo.lmssoftdreams.repositories.BorrowRepository;
 import dev.thangngo.lmssoftdreams.services.BorrowService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
 
 @Service
+@Transactional
+
 public class BorrowServiceImpl implements BorrowService {
 
     private final BorrowRepository borrowRepository;
@@ -38,6 +42,7 @@ public class BorrowServiceImpl implements BorrowService {
         ensureBookCopyAvailable(request.getBookCopyId());
 
         Borrow borrow = borrowMapper.toBorrow(request);
+        borrow.setStatus(BorrowStatus.BORROWED);
         Borrow savedBorrow = borrowRepository.save(borrow);
 
         return borrowMapper.toBorrowResponse(savedBorrow);
@@ -72,12 +77,8 @@ public class BorrowServiceImpl implements BorrowService {
 
     @Override
     public List<BorrowResponse> getAllBorrows() {
-        return borrowRepository.findAll()
-                .stream()
-                .map(borrowMapper::toBorrowResponse)
-                .toList();
+        return borrowRepository.findAllBorrowResponses();
     }
-
 
     private void ensureBookCopyAvailable(Long bookCopyId) {
         BookCopy bookCopy = bookCopyRepository.findById(bookCopyId)
