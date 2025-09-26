@@ -84,4 +84,15 @@ public class CategoryController {
                 .success(true)
                 .build());
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<CategoryResponse>> getCategoryById (@PathVariable Long id) {
+        CategoryResponse categoryResponse = categoryService.getCategoryById(id);
+        return ResponseEntity.ok(ApiResponse.<CategoryResponse>builder()
+                .message("Get Category Successfully")
+                .code(200)
+                .success(true)
+                .result(categoryResponse)
+                .build());
+    }
 }

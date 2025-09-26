@@ -1,4 +1,4 @@
-package dev.thangngo.lmssoftdreams.repositories.books;
+package dev.thangngo.lmssoftdreams.repositories;
 
 import dev.thangngo.lmssoftdreams.entities.Book;
 import org.springframework.data.domain.Pageable;

@@ -7,7 +7,7 @@ import dev.thangngo.lmssoftdreams.entities.Author;
 import dev.thangngo.lmssoftdreams.enums.ErrorCode;
 import dev.thangngo.lmssoftdreams.exceptions.AppException;
 import dev.thangngo.lmssoftdreams.mappers.AuthorMapper;
-import dev.thangngo.lmssoftdreams.repositories.authors.AuthorRepository;
+import dev.thangngo.lmssoftdreams.repositories.AuthorRepository;
 import dev.thangngo.lmssoftdreams.services.AuthorService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -39,12 +39,10 @@ public class AuthorServiceImpl implements AuthorService {
 
     @Override
     public Page<AuthorResponse> getAuthorByName(String username, Pageable pageable) {
-        List<AuthorResponse> authorResponses = authorRepository.findByNameContaining(username, pageable)
-                .stream()
-                .map(authorMapper::toAuthorResponse)
-                .toList();
-        return new PageImpl<>(authorResponses, pageable, authorResponses.size());
+        Page<Author> page = authorRepository.findByNameContainingIgnoreCase(username, pageable);
+        return page.map(authorMapper::toAuthorResponse);
     }
+
 
 
     @Override

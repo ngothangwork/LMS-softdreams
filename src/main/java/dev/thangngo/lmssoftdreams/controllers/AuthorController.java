@@ -61,7 +61,7 @@ public class AuthorController {
 
     @GetMapping("/search")
     public ResponseEntity<ApiResponse<Page<AuthorResponse>>> searchAuthor(
-            @RequestParam String name,
+            @RequestParam(required = false, defaultValue = "") String name,
             @PageableDefault(size = 10, page = 0, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
 
         Page<AuthorResponse> page = authorService.getAuthorByName(name, pageable);

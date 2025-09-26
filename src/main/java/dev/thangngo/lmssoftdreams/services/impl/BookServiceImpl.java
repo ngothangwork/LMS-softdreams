@@ -10,11 +10,11 @@ import dev.thangngo.lmssoftdreams.enums.BookStatus;
 import dev.thangngo.lmssoftdreams.enums.ErrorCode;
 import dev.thangngo.lmssoftdreams.exceptions.AppException;
 import dev.thangngo.lmssoftdreams.mappers.BookMapper;
-import dev.thangngo.lmssoftdreams.repositories.authors.AuthorRepository;
-import dev.thangngo.lmssoftdreams.repositories.bookcopy.BookCopyRepository;
-import dev.thangngo.lmssoftdreams.repositories.books.BookRepository;
-import dev.thangngo.lmssoftdreams.repositories.categories.CategoryRepository;
-import dev.thangngo.lmssoftdreams.repositories.publishers.PublisherRepository;
+import dev.thangngo.lmssoftdreams.repositories.AuthorRepository;
+import dev.thangngo.lmssoftdreams.repositories.BookCopyRepository;
+import dev.thangngo.lmssoftdreams.repositories.BookRepository;
+import dev.thangngo.lmssoftdreams.repositories.CategoryRepository;
+import dev.thangngo.lmssoftdreams.repositories.PublisherRepository;
 import dev.thangngo.lmssoftdreams.services.BookService;
 
 import org.springframework.data.domain.Pageable;

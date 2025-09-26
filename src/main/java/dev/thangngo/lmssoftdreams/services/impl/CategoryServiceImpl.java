@@ -7,7 +7,7 @@ import dev.thangngo.lmssoftdreams.entities.Category;
 import dev.thangngo.lmssoftdreams.enums.ErrorCode;
 import dev.thangngo.lmssoftdreams.exceptions.AppException;
 import dev.thangngo.lmssoftdreams.mappers.CategoryMapper;
-import dev.thangngo.lmssoftdreams.repositories.categories.CategoryRepository;
+import dev.thangngo.lmssoftdreams.repositories.CategoryRepository;
 import dev.thangngo.lmssoftdreams.services.CategoryService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

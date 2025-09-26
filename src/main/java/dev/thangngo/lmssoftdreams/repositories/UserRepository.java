@@ -1,4 +1,4 @@
-package dev.thangngo.lmssoftdreams.repositories.users;
+package dev.thangngo.lmssoftdreams.repositories;
 
 import dev.thangngo.lmssoftdreams.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -1,4 +1,4 @@
-package dev.thangngo.lmssoftdreams.repositories.publishers;
+package dev.thangngo.lmssoftdreams.repositories;
 
 import dev.thangngo.lmssoftdreams.entities.Publisher;
 import org.springframework.data.jpa.repository.JpaRepository;

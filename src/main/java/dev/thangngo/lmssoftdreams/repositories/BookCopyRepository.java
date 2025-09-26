@@ -1,4 +1,4 @@
-package dev.thangngo.lmssoftdreams.repositories.bookcopy;
+package dev.thangngo.lmssoftdreams.repositories;
 
 import dev.thangngo.lmssoftdreams.entities.BookCopy;
 import dev.thangngo.lmssoftdreams.enums.BookStatus;

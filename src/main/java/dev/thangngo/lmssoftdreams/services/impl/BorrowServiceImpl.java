@@ -9,8 +9,8 @@ import dev.thangngo.lmssoftdreams.enums.BookStatus;
 import dev.thangngo.lmssoftdreams.enums.ErrorCode;
 import dev.thangngo.lmssoftdreams.exceptions.AppException;
 import dev.thangngo.lmssoftdreams.mappers.BorrowMapper;
-import dev.thangngo.lmssoftdreams.repositories.bookcopy.BookCopyRepository;
-import dev.thangngo.lmssoftdreams.repositories.borrows.BorrowRepository;
+import dev.thangngo.lmssoftdreams.repositories.BookCopyRepository;
+import dev.thangngo.lmssoftdreams.repositories.BorrowRepository;
 import dev.thangngo.lmssoftdreams.services.BorrowService;
 import org.springframework.stereotype.Service;
 

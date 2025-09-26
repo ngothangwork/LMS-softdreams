@@ -9,7 +9,7 @@ import dev.thangngo.lmssoftdreams.enums.UserRole;
 import dev.thangngo.lmssoftdreams.enums.UserStatus;
 import dev.thangngo.lmssoftdreams.exceptions.AppException;
 import dev.thangngo.lmssoftdreams.mappers.UserMapper;
-import dev.thangngo.lmssoftdreams.repositories.users.UserRepository;
+import dev.thangngo.lmssoftdreams.repositories.UserRepository;
 import dev.thangngo.lmssoftdreams.securities.JwtUtil;
 import dev.thangngo.lmssoftdreams.services.AuthService;
 import jakarta.transaction.Transactional;

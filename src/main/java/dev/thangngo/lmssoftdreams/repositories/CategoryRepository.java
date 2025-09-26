@@ -1,4 +1,4 @@
-package dev.thangngo.lmssoftdreams.repositories.categories;
+package dev.thangngo.lmssoftdreams.repositories;
 
 import dev.thangngo.lmssoftdreams.entities.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
