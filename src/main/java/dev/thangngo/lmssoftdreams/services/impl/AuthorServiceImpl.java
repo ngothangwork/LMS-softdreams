@@ -3,6 +3,7 @@ package dev.thangngo.lmssoftdreams.services.impl;
 import dev.thangngo.lmssoftdreams.dtos.request.author.AuthorCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.author.AuthorUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.author.AuthorResponse;
+import dev.thangngo.lmssoftdreams.dtos.response.author.AuthorUpdateResponse;
 import dev.thangngo.lmssoftdreams.entities.Author;
 import dev.thangngo.lmssoftdreams.enums.ErrorCode;
 import dev.thangngo.lmssoftdreams.exceptions.AppException;
@@ -77,5 +78,11 @@ public class AuthorServiceImpl implements AuthorService {
                 .orElseThrow(() -> new AppException(ErrorCode.AUTHOR_NOT_FOUND));
 
         authorRepository.delete(author);
+    }
+
+    @Override
+    public List<AuthorUpdateResponse> getAuthorUpdate() {
+        return authorRepository.findAllAuthorUpdateResponses();
+
     }
 }

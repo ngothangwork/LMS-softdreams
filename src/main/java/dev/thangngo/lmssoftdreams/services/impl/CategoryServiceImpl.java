@@ -3,6 +3,7 @@ package dev.thangngo.lmssoftdreams.services.impl;
 import dev.thangngo.lmssoftdreams.dtos.request.category.CategoryCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.category.CategoryUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.category.CategoryResponse;
+import dev.thangngo.lmssoftdreams.dtos.response.category.CategoryUpdateResponse;
 import dev.thangngo.lmssoftdreams.entities.Category;
 import dev.thangngo.lmssoftdreams.enums.ErrorCode;
 import dev.thangngo.lmssoftdreams.exceptions.AppException;
@@ -78,5 +79,10 @@ public class CategoryServiceImpl implements CategoryService {
     public List<CategoryResponse> getAllCategories() {
         return categoryRepository.findAll().stream()
                 .map(categoryMapper::toCategoryResponse).toList();
+    }
+
+    @Override
+    public List<CategoryUpdateResponse> getCategoryUpdate() {
+        return categoryRepository.findAllCategoryUpdateResponses();
     }
 }

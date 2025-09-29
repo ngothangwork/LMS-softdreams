@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface PublisherRepository extends JpaRepository<Publisher, Long> {
+public interface PublisherRepository extends JpaRepository<Publisher, Long>, PublisherCustomRepository {
     List<Publisher> findByNameContaining(String keyword);
 }

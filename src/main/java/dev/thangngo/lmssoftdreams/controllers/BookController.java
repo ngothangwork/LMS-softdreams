@@ -83,9 +83,9 @@ public class BookController {
     }
 
     @GetMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<BookDetailResponse>> getBookForUpdate(@PathVariable Long id) {
-        BookDetailResponse response = bookService.getBookUpdateById(id);
-        return ResponseEntity.ok(ApiResponse.<BookDetailResponse>builder()
+    public ResponseEntity<ApiResponse<BookUpdateRequest>> getBookForUpdate(@PathVariable Long id) {
+        BookUpdateRequest response = bookService.getBookUpdateById(id);
+        return ResponseEntity.ok(ApiResponse.<BookUpdateRequest>builder()
                 .code(200)
                 .message("get book update successfully")
                 .result(response)

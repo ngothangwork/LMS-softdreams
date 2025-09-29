@@ -1,5 +1,7 @@
 package dev.thangngo.lmssoftdreams.entities;
 
+import dev.thangngo.lmssoftdreams.dtos.response.author.AuthorUpdateResponse;
+import dev.thangngo.lmssoftdreams.dtos.response.publisher.PublisherUpdateResponse;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,6 +10,16 @@ import lombok.Setter;
 @Table(name = "publishers")
 @Getter
 @Setter
+@SqlResultSetMapping(
+        name = "PublisherUpdateMapping",
+        classes = @ConstructorResult(
+                targetClass = PublisherUpdateResponse.class,
+                columns = {
+                        @ColumnResult(name = "id", type = Long.class),
+                        @ColumnResult(name = "name", type = String.class),
+                }
+        )
+)
 public class Publisher {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -150,9 +150,9 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookDetailResponse getBookUpdateById(Long id) {
+    public BookUpdateRequest getBookUpdateById(Long id) {
         return bookRepository.findById(id)
-                .map(bookMapper::toBookDetailResponse)
+                .map(bookMapper::toBookUpdateRequest)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
     }
 

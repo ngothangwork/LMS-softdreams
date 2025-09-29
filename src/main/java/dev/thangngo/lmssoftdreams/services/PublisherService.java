@@ -3,6 +3,7 @@ package dev.thangngo.lmssoftdreams.services;
 import dev.thangngo.lmssoftdreams.dtos.request.publisher.PublisherCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.publisher.PublisherUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.publisher.PublisherResponse;
+import dev.thangngo.lmssoftdreams.dtos.response.publisher.PublisherUpdateResponse;
 
 import java.util.List;
 
@@ -13,4 +14,5 @@ public interface PublisherService {
     void deletePublisher(Long id);
     PublisherResponse updatePublisher(Long id, PublisherUpdateRequest request);
     List<PublisherResponse> getAllPublishers();
+    List<PublisherUpdateResponse> getPublisherUpdate();
 }

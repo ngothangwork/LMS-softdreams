@@ -15,5 +15,7 @@ public interface AuthorMapper {
 
     AuthorResponse toAuthorResponse(Author author);
 
+    AuthorUpdateRequest toAuthorUpdateRequest(Author author);
+
     void updateAuthorFromDto(AuthorUpdateRequest dto, @MappingTarget Author entity);
 }

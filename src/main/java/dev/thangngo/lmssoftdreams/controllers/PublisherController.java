@@ -4,6 +4,7 @@ import dev.thangngo.lmssoftdreams.dtos.request.publisher.PublisherCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.publisher.PublisherUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.ApiResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.publisher.PublisherResponse;
+import dev.thangngo.lmssoftdreams.dtos.response.publisher.PublisherUpdateResponse;
 import dev.thangngo.lmssoftdreams.services.PublisherService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -57,6 +58,20 @@ public class PublisherController {
                         .code(200)
                         .success(true)
                         .result(publisher)
+                        .build()
+        );
+    }
+
+
+    @GetMapping("/options")
+    public ResponseEntity<ApiResponse<List<PublisherUpdateResponse>>> getPublishersForUpdate() {
+        List<PublisherUpdateResponse> publisherUpdateResponses = publisherService.getPublisherUpdate();
+        return ResponseEntity.ok(
+                ApiResponse.<List<PublisherUpdateResponse>>builder()
+                        .message("Get all publishers for update")
+                        .code(200)
+                        .success(true)
+                        .result(publisherUpdateResponses)
                         .build()
         );
     }

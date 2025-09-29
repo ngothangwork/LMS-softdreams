@@ -26,6 +26,9 @@ public interface BookMapper {
 
     BookResponse toBookResponse(Book book);
 
+    @Mapping(target = "publisherId", source = "publisher.id")
+    @Mapping(target = "authorIds", source = "authors", qualifiedByName = "mapAuthorIds")
+    @Mapping(target = "categoryIds", source = "categories", qualifiedByName = "mapCategoryIds")
     BookUpdateRequest toBookUpdateRequest(Book book);
 
     BookDetailResponse toBookDetailResponse(Book book);

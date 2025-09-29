@@ -3,6 +3,7 @@ package dev.thangngo.lmssoftdreams.mappers;
 import dev.thangngo.lmssoftdreams.dtos.request.category.CategoryCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.category.CategoryUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.category.CategoryResponse;
+import dev.thangngo.lmssoftdreams.dtos.response.category.CategoryUpdateResponse;
 import dev.thangngo.lmssoftdreams.entities.Category;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
@@ -15,4 +16,5 @@ public interface CategoryMapper {
     Category toCategory(CategoryCreateRequest categoryCreateRequest);
 
     void updateCategoryFromDto(CategoryUpdateRequest dto, @MappingTarget Category entity);
+    CategoryUpdateResponse toCategoryUpdateResponse(Category category);
 }

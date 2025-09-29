@@ -3,6 +3,7 @@ package dev.thangngo.lmssoftdreams.services.impl;
 import dev.thangngo.lmssoftdreams.dtos.request.publisher.PublisherCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.publisher.PublisherUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.publisher.PublisherResponse;
+import dev.thangngo.lmssoftdreams.dtos.response.publisher.PublisherUpdateResponse;
 import dev.thangngo.lmssoftdreams.entities.Publisher;
 import dev.thangngo.lmssoftdreams.enums.ErrorCode;
 import dev.thangngo.lmssoftdreams.exceptions.AppException;
@@ -77,5 +78,10 @@ public class PublisherServiceImpl implements PublisherService {
         return publisherRepository.findAll().stream()
                 .map(publisherMapper::toPublisherResponse)
                 .toList();
+    }
+
+    @Override
+    public List<PublisherUpdateResponse> getPublisherUpdate() {
+        return publisherRepository.findAllPublisherUpdateResponses();
     }
 }

@@ -4,6 +4,7 @@ import dev.thangngo.lmssoftdreams.dtos.request.category.CategoryCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.category.CategoryUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.ApiResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.category.CategoryResponse;
+import dev.thangngo.lmssoftdreams.dtos.response.category.CategoryUpdateResponse;
 import dev.thangngo.lmssoftdreams.services.CategoryService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -95,4 +96,18 @@ public class CategoryController {
                 .result(categoryResponse)
                 .build());
     }
+
+    @GetMapping("/options")
+    public ResponseEntity<ApiResponse<List<CategoryUpdateResponse>>> getCategoriesForUpdate() {
+        List<CategoryUpdateResponse> categoryUpdateResponses = categoryService.getCategoryUpdate();
+        return ResponseEntity.ok(
+                ApiResponse.<List<CategoryUpdateResponse>>builder()
+                        .message("Get all categories for update")
+                        .code(200)
+                        .success(true)
+                        .result(categoryUpdateResponses)
+                        .build()
+        );
+    }
+
 }

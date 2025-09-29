@@ -4,6 +4,7 @@ import dev.thangngo.lmssoftdreams.dtos.request.author.AuthorCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.author.AuthorUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.ApiResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.author.AuthorResponse;
+import dev.thangngo.lmssoftdreams.dtos.response.author.AuthorUpdateResponse;
 import dev.thangngo.lmssoftdreams.services.AuthorService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -48,6 +49,16 @@ public class AuthorController {
                 .build());
     }
 
+    @GetMapping("/options")
+    public ResponseEntity<ApiResponse<List<AuthorUpdateResponse>>> getAuthorForUpdate() {
+        List<AuthorUpdateResponse> authorUpdateResponses = authorService.getAuthorUpdate();
+        return ResponseEntity.ok(ApiResponse.<List<AuthorUpdateResponse>>builder()
+                .success(true)
+                .result(authorUpdateResponses)
+                .code(200)
+                .message("Get all authors for update")
+                .build());
+    }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> deleteAuthor(@PathVariable Long id) {

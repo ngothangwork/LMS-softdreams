@@ -19,7 +19,7 @@ public interface BookService {
     BookDetailResponse getBookById(Long id);
     List<BookResponse> getAllBooks();
     List<BookResponse> getBooksByName(String name);
-    BookDetailResponse getBookUpdateById(Long id);
+    BookUpdateRequest getBookUpdateById(Long id);
     PageResponse<BookResponse> filterBooks(BookSearchRequest request, Pageable pageable);
     List<BookDetailResponseDTO> searchBooks(String name, Pageable pageable);
 }

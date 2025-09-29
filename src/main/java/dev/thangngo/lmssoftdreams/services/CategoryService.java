@@ -3,6 +3,7 @@ package dev.thangngo.lmssoftdreams.services;
 import dev.thangngo.lmssoftdreams.dtos.request.category.CategoryCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.category.CategoryUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.category.CategoryResponse;
+import dev.thangngo.lmssoftdreams.dtos.response.category.CategoryUpdateResponse;
 
 import java.util.List;
 
@@ -13,5 +14,6 @@ public interface CategoryService {
     CategoryResponse getCategoryById(Long id);
     List<CategoryResponse> getCategoryByNameContaining(String name);
     List<CategoryResponse> getAllCategories();
+    List<CategoryUpdateResponse> getCategoryUpdate();
 
 }

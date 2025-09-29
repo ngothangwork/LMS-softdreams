@@ -1,7 +1,6 @@
 package dev.thangngo.lmssoftdreams.repositories.impl;
 
 import dev.thangngo.lmssoftdreams.dtos.response.book.BookDetailResponseDTO;
-import dev.thangngo.lmssoftdreams.entities.Book;
 import dev.thangngo.lmssoftdreams.repositories.BookCustomRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Repository
 @Transactional
