@@ -15,7 +15,7 @@ public class BookUpdateResponse {
     private String name;
     private String avatar;
     private String isbn;
-    private PublisherResponse publisher;
-    private Set<AuthorResponse> authors;
-    private Set<CategoryResponse> categories;
+    private Long publisherId;
+    private Set<Long> authorIds;
+    private Set<Long> categoryIds;
 }

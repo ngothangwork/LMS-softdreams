@@ -26,6 +26,8 @@ public interface BookMapper {
 
     BookResponse toBookResponse(Book book);
 
+    BookUpdateRequest toBookUpdateRequest(Book book);
+
     BookDetailResponse toBookDetailResponse(Book book);
 
     void updateBookFromDto(BookUpdateRequest request, @MappingTarget Book book);
