@@ -158,7 +158,6 @@
             <version>6.21.3</version>
         </dependency>
 
-        <!-- Nếu cần export PDF -->
         <dependency>
             <groupId>com.lowagie</groupId>
             <artifactId>itext</artifactId>

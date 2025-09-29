@@ -49,7 +49,8 @@ public class AuthServiceImpl implements AuthService {
         loginResponse.setUserId(user.getId());
         loginResponse.setUsername(user.getUsername());
         loginResponse.setFullName(user.getFullName());
-        loginResponse.setToken(jwtUtil.generateAccessToken(user.getUsername()));
+        loginResponse.setToken(jwtUtil.generateAccessToken(user.getUsername(), user.getRole().toString()));
+        loginResponse.setUserRole(user.getRole());
         loginResponse.setRefreshToken(jwtUtil.generateRefreshToken(user.getUsername()));
 
         return loginResponse;
@@ -81,7 +82,7 @@ public class AuthServiceImpl implements AuthService {
 
         String username = jwtUtil.getUsernameFromToken(refreshToken);
 
-        String newAccessToken = jwtUtil.generateAccessToken(username);
+        String newAccessToken = jwtUtil.generateAccessToken(username, userRepository.findByUsername(username).get().getRole().toString());
         String newRefreshToken = jwtUtil.generateRefreshToken(username);
 
         LoginResponse loginResponse = new LoginResponse();

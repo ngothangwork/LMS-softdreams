@@ -26,9 +26,13 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // JWT stateless
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/public/**", "/uploads/**", "/books/search/**", "/books/**").permitAll()
+                        .requestMatchers("/auth/**", "/public/**", "/uploads/**", "/books/search/**").permitAll()
+                        .requestMatchers("/manager/**").hasRole("ADMIN")
+                        .requestMatchers("/books/create/**", "/books/update/**", "/books/delete/**").hasRole("ADMIN")
+                        .requestMatchers("/books/customer/**").authenticated()
                         .anyRequest().authenticated()
                 )
+
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

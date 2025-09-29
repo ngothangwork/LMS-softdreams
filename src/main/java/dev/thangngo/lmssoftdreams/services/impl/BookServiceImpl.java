@@ -5,6 +5,7 @@ import dev.thangngo.lmssoftdreams.dtos.request.book.BookSearchRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.book.BookUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.PageResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.book.BookDetailResponse;
+import dev.thangngo.lmssoftdreams.dtos.response.book.BookDetailResponseDTO;
 import dev.thangngo.lmssoftdreams.dtos.response.book.BookResponse;
 import dev.thangngo.lmssoftdreams.entities.*;
 import dev.thangngo.lmssoftdreams.enums.BookStatus;
@@ -81,7 +82,7 @@ public class BookServiceImpl implements BookService {
 
 
     @Override
-    @CacheEvict(value = "books", allEntries = true)
+    @CacheEvict(value = "books-filter", allEntries = true)
     public BookResponse updateBook(Long id, BookUpdateRequest request) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
@@ -149,58 +150,39 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookResponse getBookUpdateById(Long id) {
+    public BookDetailResponse getBookUpdateById(Long id) {
         return bookRepository.findById(id)
-                .map(bookMapper::toBookResponse)
+                .map(bookMapper::toBookDetailResponse)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
     }
 
     @Override
-    @Cacheable(
-            value = "books-filter",
-            key = "{#request.type, #request.keyword, #pageable.pageNumber, #pageable.pageSize}"
-    )
+//    @Cacheable(
+//            value = "books-filter",
+//            key = "{#request.type, #request.keyword, #pageable.pageNumber, #pageable.pageSize}"
+//    )
     public PageResponse<BookResponse> filterBooks(BookSearchRequest request, Pageable pageable) {
-        List<Book> books;
-        long total;
-
-        switch (request.getType().toLowerCase()) {
-            case "name" -> {
-                books = bookRepository.searchByName(request.getKeyword(), pageable);
-                total = bookRepository.countByName(request.getKeyword());
-            }
-            case "author" -> {
-                books = bookRepository.searchByAuthor(request.getKeyword(), pageable);
-                total = bookRepository.countByAuthor(request.getKeyword());
-            }
-            case "category" -> {
-                books = bookRepository.searchByCategory(request.getKeyword(), pageable);
-                total = bookRepository.countByCategory(request.getKeyword());
-            }
-            case "publisher" -> {
-                books = bookRepository.searchByPublisher(request.getKeyword(), pageable);
-                total = bookRepository.countByPublisher(request.getKeyword());
-            }
-            default -> throw new IllegalArgumentException("Invalid search type: " + request.getType());
-        }
-
-        if (request.getKeyword() == null || request.getKeyword().isBlank()) {
-            var pageResult = bookRepository.findAll(pageable);
-            books = pageResult.getContent();
-            total = pageResult.getTotalElements();
-        }
-
-        List<BookResponse> responses = books.stream()
-                .map(bookMapper::toBookResponse)
+        List<BookDetailResponseDTO> dtoList = bookRepository.filterBooks(request.getType(), request.getKeyword(), pageable);
+        long total = bookRepository.countFilterBooks(request.getType(), request.getKeyword());
+        List<BookResponse> responses = dtoList.stream()
+                .map(dto -> {
+                    BookResponse res = new BookResponse();
+                    res.setId(dto.getId());
+                    res.setName(dto.getName());
+                    res.setAvatar(dto.getAvatar());
+                    res.setIsbn(dto.getIsbn());
+                    return res;
+                })
                 .toList();
-
         Page<BookResponse> page = new PageImpl<>(responses, pageable, total);
-
         return new PageResponse<>(page);
     }
 
 
-
+    @Override
+    public List<BookDetailResponseDTO> searchBooks(String name, Pageable pageable) {
+        return bookRepository.searchBooksByName(name, pageable);
+    }
 
     private Set<Author> loadAuthorsOrThrow(Set<Long> authorIds) {
         if (authorIds == null || authorIds.isEmpty()) return Collections.emptySet();

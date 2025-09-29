@@ -39,7 +39,7 @@ public class ApplicationInitConfig {
                 admin.setUsername(ADMIN_USER_NAME);
                 admin.setPassword(passwordEncoder.encode(adminPassword));
                 admin.setRole(UserRole.ADMIN);
-                admin.setFullName("Toi yeu em");
+                admin.setFullName("Tao la Admin");
                 userRepository.save(admin);
             }
             log.info("Application initialization completed .....");

@@ -1,5 +1,6 @@
 package dev.thangngo.lmssoftdreams.entities;
 
+import dev.thangngo.lmssoftdreams.dtos.response.book.BookDetailResponseDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,6 +11,24 @@ import java.util.Set;
 @Table(name = "books")
 @Getter
 @Setter
+
+@SqlResultSetMapping(
+        name = "BookDetailMapping",
+        classes = @ConstructorResult(
+                targetClass = BookDetailResponseDTO.class,
+                columns = {
+                        @ColumnResult(name = "id", type = Long.class),
+                        @ColumnResult(name = "name", type = String.class),
+                        @ColumnResult(name = "isbn", type = String.class),
+                        @ColumnResult(name = "avatar", type = String.class),
+                        @ColumnResult(name = "publisherName", type = String.class),
+                        @ColumnResult(name = "authors", type = String.class),
+                        @ColumnResult(name = "categories", type = String.class),
+                        @ColumnResult(name = "numberOfBorrowed", type = Integer.class),
+                        @ColumnResult(name = "numberOfAvailable", type = Integer.class)
+                }
+        )
+)
 
 public class Book {
     @Id

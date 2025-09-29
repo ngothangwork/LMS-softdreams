@@ -1,5 +1,6 @@
 package dev.thangngo.lmssoftdreams.dtos.response.login;
 
+import dev.thangngo.lmssoftdreams.enums.UserRole;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,4 +17,5 @@ public class LoginResponse implements Serializable {
     private String fullName;
     private String token;
     private String refreshToken;
+    private UserRole userRole;
 }

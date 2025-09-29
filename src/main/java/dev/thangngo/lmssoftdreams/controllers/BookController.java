@@ -6,6 +6,7 @@ import dev.thangngo.lmssoftdreams.dtos.request.book.BookUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.ApiResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.PageResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.book.BookDetailResponse;
+import dev.thangngo.lmssoftdreams.dtos.response.book.BookDetailResponseDTO;
 import dev.thangngo.lmssoftdreams.dtos.response.book.BookResponse;
 import dev.thangngo.lmssoftdreams.services.BookService;
 import jakarta.validation.Valid;
@@ -82,9 +83,9 @@ public class BookController {
     }
 
     @GetMapping("/update/{id}")
-    public ResponseEntity<ApiResponse<BookResponse>> getBookForUpdate(@PathVariable Long id) {
-        BookResponse response = bookService.getBookUpdateById(id);
-        return ResponseEntity.ok(ApiResponse.<BookResponse>builder()
+    public ResponseEntity<ApiResponse<BookDetailResponse>> getBookForUpdate(@PathVariable Long id) {
+        BookDetailResponse response = bookService.getBookUpdateById(id);
+        return ResponseEntity.ok(ApiResponse.<BookDetailResponse>builder()
                 .code(200)
                 .message("get book update successfully")
                 .result(response)
@@ -131,6 +132,19 @@ public class BookController {
                         .result(result)
                         .build()
         );
+    }
+
+    @GetMapping("/search/name")
+    public ResponseEntity<ApiResponse<List<BookDetailResponseDTO>>> search(
+            @RequestParam String name,
+            @PageableDefault(size = 10, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
+        List<BookDetailResponseDTO> bookDetailResponseDTOS = bookService.searchBooks(name, pageable);
+        return ResponseEntity.ok(ApiResponse.<List<BookDetailResponseDTO>>builder()
+                .success(true)
+                .code(200)
+                .message("Search books successfully")
+                .result(bookDetailResponseDTOS)
+                .build());
     }
 
     @GetMapping("/export")
@@ -202,12 +216,11 @@ public class BookController {
         headers.setContentType(MediaType.APPLICATION_PDF);
 
         // inline = mở trực tiếp trên browser | attachment = tải về file
-        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=books.xlsx");
+        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=books.pdf");
 
         return ResponseEntity.ok().headers(headers).body(pdfBytes);
     }
 
-    // --- helper methods ---
     private JRDesignStaticText createHeader(String text, int x, int width) {
         JRDesignStaticText header = new JRDesignStaticText();
         header.setText(text);
@@ -217,7 +230,7 @@ public class BookController {
         header.setHeight(20);
         header.setBold(true);
         header.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
-        header.setBackcolor(new Color(220, 220, 220)); // xám nhạt
+        header.setBackcolor(new Color(220, 220, 220));
         header.setMode(ModeEnum.OPAQUE);
         header.getLineBox().getPen().setLineWidth(1f);
         return header;
@@ -247,77 +260,76 @@ public class BookController {
         return field;
     }
 
-    @GetMapping("/export-excel")
-    public ResponseEntity<byte[]> exportBooksExcel() throws Exception {
-        List<BookResponse> books = bookService.getAllBooks();
+        @GetMapping("/export-excel")
+        public ResponseEntity<byte[]> exportBooksExcel() throws Exception {
+            List<BookResponse> books = bookService.getAllBooks();
 
-        // thiết kế Jasper giống như phần PDF
-        JasperDesign jasperDesign = new JasperDesign();
-        jasperDesign.setName("BooksExcel");
-        jasperDesign.setPageWidth(595);
-        jasperDesign.setPageHeight(842);
+            // thiết kế Jasper giống như phần PDF
+            JasperDesign jasperDesign = new JasperDesign();
+            jasperDesign.setName("BooksExcel");
+            jasperDesign.setPageWidth(595);
+            jasperDesign.setPageHeight(842);
 
-        // Title
-        JRDesignBand titleBand = new JRDesignBand();
-        titleBand.setHeight(30);
-        JRDesignStaticText title = new JRDesignStaticText();
-        title.setText("Books Report (Excel)");
-        title.setX(200);
-        title.setY(5);
-        title.setWidth(200);
-        title.setHeight(20);
-        title.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
-        titleBand.addElement(title);
-        jasperDesign.setTitle(titleBand);
+            // Title
+            JRDesignBand titleBand = new JRDesignBand();
+            titleBand.setHeight(30);
+            JRDesignStaticText title = new JRDesignStaticText();
+            title.setText("Books Report (Excel)");
+            title.setX(200);
+            title.setY(5);
+            title.setWidth(200);
+            title.setHeight(20);
+            title.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+            titleBand.addElement(title);
+            jasperDesign.setTitle(titleBand);
 
-        // Column Header
-        JRDesignBand columnHeader = new JRDesignBand();
-        columnHeader.setHeight(20);
-        columnHeader.addElement(createHeader("ID", 0, 50));
-        columnHeader.addElement(createHeader("Name", 50, 200));
-        columnHeader.addElement(createHeader("ISBN", 250, 150));
-        columnHeader.addElement(createHeader("PublisherId", 400, 100));
-        jasperDesign.setColumnHeader(columnHeader);
+            // Column Header
+            JRDesignBand columnHeader = new JRDesignBand();
+            columnHeader.setHeight(20);
+            columnHeader.addElement(createHeader("ID", 0, 50));
+            columnHeader.addElement(createHeader("Name", 50, 200));
+            columnHeader.addElement(createHeader("ISBN", 250, 150));
+            columnHeader.addElement(createHeader("PublisherId", 400, 100));
+            jasperDesign.setColumnHeader(columnHeader);
 
-        // Detail
-        JRDesignBand detailBand = new JRDesignBand();
-        detailBand.setHeight(20);
-        detailBand.addElement(createField("id", Long.class, 0, 50));
-        detailBand.addElement(createField("name", String.class, 50, 200));
-        detailBand.addElement(createField("isbn", String.class, 250, 150));
-        detailBand.addElement(createField("publisherId", Long.class, 400, 100));
-        ((JRDesignSection) jasperDesign.getDetailSection()).addBand(detailBand);
+            // Detail
+            JRDesignBand detailBand = new JRDesignBand();
+            detailBand.setHeight(20);
+            detailBand.addElement(createField("id", Long.class, 0, 50));
+            detailBand.addElement(createField("name", String.class, 50, 200));
+            detailBand.addElement(createField("isbn", String.class, 250, 150));
+            detailBand.addElement(createField("publisherId", Long.class, 400, 100));
+            ((JRDesignSection) jasperDesign.getDetailSection()).addBand(detailBand);
 
-        jasperDesign.addField(createJRField("id", Long.class));
-        jasperDesign.addField(createJRField("name", String.class));
-        jasperDesign.addField(createJRField("isbn", String.class));
-        jasperDesign.addField(createJRField("publisherId", Long.class));
+            jasperDesign.addField(createJRField("id", Long.class));
+            jasperDesign.addField(createJRField("name", String.class));
+            jasperDesign.addField(createJRField("isbn", String.class));
+            jasperDesign.addField(createJRField("publisherId", Long.class));
 
-        JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
-        JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(books);
-        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, new HashMap<>(), dataSource);
+            JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
+            JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(books);
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, new HashMap<>(), dataSource);
 
-        // Export ra Excel
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        JRXlsxExporter exporter = new JRXlsxExporter();
-        exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
-        exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(out));
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            JRXlsxExporter exporter = new JRXlsxExporter();
+            exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
+            exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(out));
 
-        SimpleXlsxReportConfiguration config = new SimpleXlsxReportConfiguration();
-        config.setDetectCellType(true); // định dạng cell tự động
-        config.setCollapseRowSpan(false);
-        exporter.setConfiguration(config);
+            SimpleXlsxReportConfiguration config = new SimpleXlsxReportConfiguration();
+            config.setDetectCellType(true);
+            config.setCollapseRowSpan(false);
+            exporter.setConfiguration(config);
 
-        exporter.exportReport();
+            exporter.exportReport();
 
-        byte[] excelBytes = out.toByteArray();
+            byte[] excelBytes = out.toByteArray();
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=books.xlsx");
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=books.xlsx");
 
-        return ResponseEntity.ok().headers(headers).body(excelBytes);
-    }
+            return ResponseEntity.ok().headers(headers).body(excelBytes);
+        }
 
 
 }

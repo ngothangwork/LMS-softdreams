@@ -1,14 +1,17 @@
 package dev.thangngo.lmssoftdreams.repositories.impl;
 
+import dev.thangngo.lmssoftdreams.dtos.response.book.BookDetailResponseDTO;
 import dev.thangngo.lmssoftdreams.entities.Book;
 import dev.thangngo.lmssoftdreams.repositories.BookCustomRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Repository
 @Transactional
@@ -17,187 +20,184 @@ public class BookCustomRepositoryImpl implements BookCustomRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
+
+
     @Override
-    public List<Book> searchByName(String name, Pageable pageable) {
-        StringBuilder jpql = new StringBuilder("""
-            SELECT DISTINCT b FROM Book b
-            LEFT JOIN FETCH b.authors
-            LEFT JOIN FETCH b.categories
-            LEFT JOIN FETCH b.publisher
-            WHERE 1=1
-        """);
+    public List<BookDetailResponseDTO> searchBooksByName(String name, Pageable pageable) {
+        String baseSql = """
+        SELECT b.id,
+               b.name,
+               b.isbn,
+               b.avatar,
+               p.name AS publisherName,
+               authors.authors,
+               categories.categories,
+               ISNULL(borrowed.count_borrowed, 0) AS numberOfBorrowed,
+               ISNULL(available.count_available, 0) AS numberOfAvailable
+        FROM books b
+        LEFT JOIN publishers p ON b.publisher_id = p.id
+        CROSS APPLY (
+            SELECT STRING_AGG(a.name, ', ') AS authors
+            FROM book_authors ba
+            JOIN authors a ON ba.author_id = a.id
+            WHERE ba.book_id = b.id
+        ) authors
+        CROSS APPLY (
+            SELECT STRING_AGG(c.name, ', ') AS categories
+            FROM book_categories bc
+            JOIN categories c ON bc.category_id = c.id
+            WHERE bc.book_id = b.id
+        ) categories
+        LEFT JOIN (
+            SELECT book_id, COUNT(*) AS count_borrowed
+            FROM book_copies
+            WHERE status = 'BORROWED'
+            GROUP BY book_id
+        ) borrowed ON borrowed.book_id = b.id
+        LEFT JOIN (
+            SELECT book_id, COUNT(*) AS count_available
+            FROM book_copies
+            WHERE status = 'AVAILABLE'
+            GROUP BY book_id
+        ) available ON available.book_id = b.id
+        WHERE b.name LIKE :name
+        ORDER BY %s
+        OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
+    """;
 
-        if (name != null && !name.isBlank()) {
-            jpql.append(" AND b.name LIKE :name");
+        String orderByColumn = "b.name";
+        boolean asc = true;
+        if (pageable != null && pageable.getSort() != null) {
+            for (org.springframework.data.domain.Sort.Order order : pageable.getSort()) {
+                if ("name".equalsIgnoreCase(order.getProperty())) {
+                    asc = order.isAscending();
+                    break;
+                }
+            }
         }
 
-        var query = entityManager.createQuery(jpql.toString(), Book.class);
+        String orderClause = orderByColumn + (asc ? " ASC" : " DESC");
+        String finalSql = String.format(baseSql, orderClause);
 
-        if (name != null && !name.isBlank()) {
-            query.setParameter("name", "%" + name.toLowerCase() + "%");
-        }
+        Query query = entityManager.createNativeQuery(finalSql, "BookDetailMapping");
+        query.setParameter("name", "%" + name + "%");
+        query.setParameter("offset", pageable.getOffset());
+        query.setParameter("limit", pageable.getPageSize());
 
-        return query
-                .setFirstResult((int) pageable.getOffset())
-                .setMaxResults(pageable.getPageSize())
-                .getResultList();
+        @SuppressWarnings("unchecked")
+        List<BookDetailResponseDTO> results = query.getResultList();
+        return results;
     }
 
     @Override
-    public long countByName(String name) {
-        StringBuilder jpql = new StringBuilder("SELECT COUNT(b) FROM Book b WHERE 1=1");
-
-        if (name != null && !name.isBlank()) {
-            jpql.append(" AND b.name LIKE :name");
+    public List<BookDetailResponseDTO> filterBooks(String type, String keyword, Pageable pageable) {
+        String baseSql = """
+        SELECT b.id,
+               b.name,
+               b.isbn,
+               b.avatar,
+               p.name AS publisherName,
+               authors.authors,
+               categories.categories,
+               ISNULL(borrowed.count_borrowed, 0) AS numberOfBorrowed,
+               ISNULL(available.count_available, 0) AS numberOfAvailable
+        FROM books b
+        LEFT JOIN publishers p ON b.publisher_id = p.id
+        CROSS APPLY (
+            SELECT STRING_AGG(a.name, ', ') AS authors
+            FROM book_authors ba
+            JOIN authors a ON ba.author_id = a.id
+            WHERE ba.book_id = b.id
+        ) authors
+        CROSS APPLY (
+            SELECT STRING_AGG(c.name, ', ') AS categories
+            FROM book_categories bc
+            JOIN categories c ON bc.category_id = c.id
+            WHERE bc.book_id = b.id
+        ) categories
+        LEFT JOIN (
+            SELECT book_id, COUNT(*) AS count_borrowed
+            FROM book_copies
+            WHERE status = 'BORROWED'
+            GROUP BY book_id
+        ) borrowed ON borrowed.book_id = b.id
+        LEFT JOIN (
+            SELECT book_id, COUNT(*) AS count_available
+            FROM book_copies
+            WHERE status = 'AVAILABLE'
+            GROUP BY book_id
+        ) available ON available.book_id = b.id
+        WHERE %s LIKE :keyword
+        ORDER BY %s
+        OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
+    """;
+        String filterColumn;
+        switch (type.toLowerCase()) {
+            case "name" -> filterColumn = "b.name";
+            case "author" -> filterColumn = "(SELECT STRING_AGG(a.name, ', ') FROM book_authors ba JOIN authors a ON ba.author_id = a.id WHERE ba.book_id = b.id)";
+            case "category" -> filterColumn = "(SELECT STRING_AGG(c.name, ', ') FROM book_categories bc JOIN categories c ON bc.category_id = c.id WHERE bc.book_id = b.id)";
+            case "publisher" -> filterColumn = "p.name";
+            default -> throw new IllegalArgumentException("Invalid search type: " + type);
         }
 
-        var query = entityManager.createQuery(jpql.toString(), Long.class);
-
-        if (name != null && !name.isBlank()) {
-            query.setParameter("name", "%" + name.toLowerCase() + "%");
+        String orderByColumn = "b.name";
+        boolean asc = true;
+        if (pageable != null && pageable.getSort() != null) {
+            for (org.springframework.data.domain.Sort.Order order : pageable.getSort()) {
+                orderByColumn = switch (order.getProperty().toLowerCase()) {
+                    case "name" -> "b.name";
+                    case "isbn" -> "b.isbn";
+                    case "publisher" -> "p.name";
+                    case "author" -> "authors.authors";
+                    case "category" -> "categories.categories";
+                    default -> "b.name";
+                };
+                asc = order.isAscending();
+                break;
+            }
         }
+        String orderClause = orderByColumn + (asc ? " ASC" : " DESC");
+        String finalSql = String.format(baseSql, filterColumn, orderClause);
 
-        return query.getSingleResult();
+        Query query = entityManager.createNativeQuery(finalSql, "BookDetailMapping");
+        query.setParameter("keyword", "%" + keyword + "%");
+        query.setParameter("offset", pageable.getOffset());
+        query.setParameter("limit", pageable.getPageSize());
+
+        @SuppressWarnings("unchecked")
+        List<BookDetailResponseDTO> results = query.getResultList();
+        return results;
     }
+
 
     @Override
-    public List<Book> searchByAuthor(String author, Pageable pageable) {
-        StringBuilder jpql = new StringBuilder("""
-            SELECT DISTINCT b FROM Book b
-            JOIN b.authors a
-            LEFT JOIN FETCH b.categories
-            LEFT JOIN FETCH b.publisher
-            WHERE 1=1
-        """);
+    public long countFilterBooks(String type, String keyword) {
+        String countSql = """
+        SELECT COUNT(*)
+        FROM books b
+        LEFT JOIN publishers p ON b.publisher_id = p.id
+        WHERE %s LIKE :keyword
+    """;
 
-        if (author != null && !author.isBlank()) {
-            jpql.append(" AND a.name LIKE :author");
+        String filterColumn;
+        switch (type.toLowerCase()) {
+            case "name" -> filterColumn = "b.name";
+            case "author" -> filterColumn = "(SELECT STRING_AGG(a.name, ', ') FROM book_authors ba JOIN authors a ON ba.author_id = a.id WHERE ba.book_id = b.id)";
+            case "category" -> filterColumn = "(SELECT STRING_AGG(c.name, ', ') FROM book_categories bc JOIN categories c ON bc.category_id = c.id WHERE bc.book_id = b.id)";
+            case "publisher" -> filterColumn = "p.name";
+            default -> throw new IllegalArgumentException("Invalid search type: " + type);
         }
 
-        var query = entityManager.createQuery(jpql.toString(), Book.class);
+        String finalSql = String.format(countSql, filterColumn);
 
-        if (author != null && !author.isBlank()) {
-            query.setParameter("author", "%" + author.toLowerCase() + "%");
-        }
+        Query query = entityManager.createNativeQuery(finalSql);
+        query.setParameter("keyword", "%" + keyword + "%");
 
-        return query
-                .setFirstResult((int) pageable.getOffset())
-                .setMaxResults(pageable.getPageSize())
-                .getResultList();
+        return ((Number) query.getSingleResult()).longValue();
     }
 
-    @Override
-    public long countByAuthor(String author) {
-        StringBuilder jpql = new StringBuilder("""
-            SELECT COUNT(DISTINCT b) FROM Book b
-            JOIN b.authors a
-            WHERE 1=1
-        """);
 
-        if (author != null && !author.isBlank()) {
-            jpql.append(" AND a.name LIKE :author");
-        }
 
-        var query = entityManager.createQuery(jpql.toString(), Long.class);
 
-        if (author != null && !author.isBlank()) {
-            query.setParameter("author", "%" + author.toLowerCase() + "%");
-        }
 
-        return query.getSingleResult();
-    }
-
-    @Override
-    public List<Book> searchByCategory(String category, Pageable pageable) {
-        StringBuilder jpql = new StringBuilder("""
-            SELECT DISTINCT b FROM Book b
-            JOIN b.categories c
-            LEFT JOIN FETCH b.authors
-            LEFT JOIN FETCH b.publisher
-            WHERE 1=1
-        """);
-
-        if (category != null && !category.isBlank()) {
-            jpql.append(" AND c.name LIKE :category");
-        }
-
-        var query = entityManager.createQuery(jpql.toString(), Book.class);
-
-        if (category != null && !category.isBlank()) {
-            query.setParameter("category", "%" + category.toLowerCase() + "%");
-        }
-
-        return query
-                .setFirstResult((int) pageable.getOffset())
-                .setMaxResults(pageable.getPageSize())
-                .getResultList();
-    }
-
-    @Override
-    public long countByCategory(String category) {
-        StringBuilder jpql = new StringBuilder("""
-            SELECT COUNT(DISTINCT b) FROM Book b
-            JOIN b.categories c
-            WHERE 1=1
-        """);
-
-        if (category != null && !category.isBlank()) {
-            jpql.append(" AND c.name LIKE :category");
-        }
-
-        var query = entityManager.createQuery(jpql.toString(), Long.class);
-
-        if (category != null && !category.isBlank()) {
-            query.setParameter("category", "%" + category.toLowerCase() + "%");
-        }
-
-        return query.getSingleResult();
-    }
-
-    @Override
-    public List<Book> searchByPublisher(String publisher, Pageable pageable) {
-        StringBuilder jpql = new StringBuilder("""
-            SELECT DISTINCT b FROM Book b
-            JOIN b.publisher p
-            LEFT JOIN FETCH b.authors
-            LEFT JOIN FETCH b.categories
-            WHERE 1=1
-        """);
-
-        if (publisher != null && !publisher.isBlank()) {
-            jpql.append(" AND p.name LIKE :publisher");
-        }
-
-        var query = entityManager.createQuery(jpql.toString(), Book.class);
-
-        if (publisher != null && !publisher.isBlank()) {
-            query.setParameter("publisher", "%" + publisher.toLowerCase() + "%");
-        }
-
-        return query
-                .setFirstResult((int) pageable.getOffset())
-                .setMaxResults(pageable.getPageSize())
-                .getResultList();
-    }
-
-    @Override
-    public long countByPublisher(String publisher) {
-        StringBuilder jpql = new StringBuilder("""
-            SELECT COUNT(DISTINCT b) FROM Book b
-            JOIN b.publisher p
-            WHERE 1=1
-        """);
-
-        if (publisher != null && !publisher.isBlank()) {
-            jpql.append(" AND p.name LIKE :publisher");
-        }
-
-        var query = entityManager.createQuery(jpql.toString(), Long.class);
-
-        if (publisher != null && !publisher.isBlank()) {
-            query.setParameter("publisher", "%" + publisher.toLowerCase() + "%");
-        }
-
-        return query.getSingleResult();
-    }
 }
