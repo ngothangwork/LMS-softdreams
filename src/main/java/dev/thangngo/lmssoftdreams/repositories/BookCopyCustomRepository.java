@@ -7,4 +7,5 @@ import java.util.List;
 public interface BookCopyCustomRepository {
     List<BookCopyListResponse> findAllBookCopyByBookId(Long BookId);
     List<BookCopyListResponse> findAllBookCopyByBookIdAndStatus(Long BookId, String status);
+
 }
