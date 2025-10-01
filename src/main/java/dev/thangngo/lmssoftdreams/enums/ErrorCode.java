@@ -39,7 +39,16 @@ public enum ErrorCode {
     BOOK_COPY_NOT_AVAILABLE(1028, "Bản sao sách không có sẵn", HttpStatus.CONFLICT),
     BOOK_COPY_NOT_FOUND_OR_NOT_AVAILABLE(1029, "Không tìm thấy hoặc bản sao sách không có sẵn", HttpStatus.NOT_FOUND),
     START_DATE_BEFORE_CURRENT_DATE(1030, "Ngày bắt đầu phải sau ngày hiện tại", HttpStatus.BAD_REQUEST),
-    INVALID_TOKEN(1031, "Token không hợp lệ", HttpStatus.BAD_REQUEST);
+    INVALID_TOKEN(1031, "Token không hợp lệ", HttpStatus.BAD_REQUEST),
+    REFRESH_TOKEN_EXPIRED(1033, "Refresh token hết hạn", HttpStatus.BAD_REQUEST),
+    INVALID_REFRESH_TOKEN(1032, "Refresh token không hợp lệ", HttpStatus.BAD_REQUEST),
+    METHOD_NOT_ALLOWED(1040, "Phương thức HTTP không được phép", HttpStatus.METHOD_NOT_ALLOWED),
+    UNSUPPORTED_MEDIA_TYPE(1041, "Content type không được hỗ trợ", HttpStatus.UNSUPPORTED_MEDIA_TYPE),
+    MISSING_PARAMETER(1042, "Thiếu tham số yêu cầu", HttpStatus.BAD_REQUEST),
+    ACCESS_DENIED(1043, "Bạn không có quyền truy cập", HttpStatus.FORBIDDEN),
+    NOT_FOUND(1044, "Không tìm thấy tài nguyên", HttpStatus.NOT_FOUND),
+    INVALID_REQUEST(1045, "Request không hợp lệ", HttpStatus.BAD_REQUEST);
+
 
     private final int code;
     private final String message;

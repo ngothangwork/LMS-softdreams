@@ -16,7 +16,9 @@ public class BorrowResponse {
     private Long id;
     private LocalDate borrowDate;
     private LocalDate returnDate;
+    private Long bookId;
     private Long bookCopyId;
+    private String barcode;
     private String bookName;
     private UUID userId;
     private String username;

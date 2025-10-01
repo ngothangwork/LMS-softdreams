@@ -3,6 +3,7 @@ package dev.thangngo.lmssoftdreams.controllers;
 import dev.thangngo.lmssoftdreams.dtos.request.bookcopy.BookCopyCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.bookcopy.BookCopyUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.ApiResponse;
+import dev.thangngo.lmssoftdreams.dtos.response.bookcopy.BookCopyListResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.bookcopy.BookCopyResponse;
 import dev.thangngo.lmssoftdreams.services.BookCopyService;
 import jakarta.validation.Valid;
@@ -36,7 +37,7 @@ public class BookCopyController {
                         .build());
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<BookCopyResponse>> updateBookCopy(
             @PathVariable Long id,
             @Valid @RequestBody BookCopyUpdateRequest request) {
@@ -60,16 +61,28 @@ public class BookCopyController {
                 .build());
     }
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<BookCopyResponse>>> getAllBookCopies() {
-        List<BookCopyResponse> response = bookCopyService.getAllBookCopies();
-        return ResponseEntity.ok(ApiResponse.<List<BookCopyResponse>>builder()
+    @GetMapping("/book/{id}")
+    public ResponseEntity<ApiResponse<List<BookCopyListResponse>>> getAllBookCopies(@PathVariable Long id) {
+        List<BookCopyListResponse> response = bookCopyService.getListBookCopyResponse(id);
+        return ResponseEntity.ok(ApiResponse.<List<BookCopyListResponse>>builder()
                 .message("Book copies fetched successfully")
                 .code(200)
                 .success(true)
                 .result(response)
                 .build());
     }
+
+    @GetMapping("/book/{id}/status")
+    public ResponseEntity<ApiResponse<List<BookCopyListResponse>>> getBookCopiesByIdAndStatus (@PathVariable Long id){
+        List<BookCopyListResponse> responses = bookCopyService.getListBookCopyResponseByStatus("AVAILABLE", id);
+        return ResponseEntity.ok(ApiResponse.<List<BookCopyListResponse>>builder()
+                .message("Book copies fetched successfully")
+                .code(200)
+                .success(true)
+                .result(responses)
+                .build());
+    }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<ApiResponse<String>> deleteBookCopy(@PathVariable Long id) {
@@ -80,4 +93,7 @@ public class BookCopyController {
                 .success(true)
                 .build());
     }
+
+
+
 }

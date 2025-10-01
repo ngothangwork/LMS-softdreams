@@ -12,11 +12,15 @@ import dev.thangngo.lmssoftdreams.mappers.UserMapper;
 import dev.thangngo.lmssoftdreams.repositories.UserRepository;
 import dev.thangngo.lmssoftdreams.securities.JwtUtil;
 import dev.thangngo.lmssoftdreams.services.AuthService;
+import dev.thangngo.lmssoftdreams.services.RefreshTokenService; // Thêm import Redis Service
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
+import java.util.Date;
 
 @Slf4j
 @Service("authService")
@@ -27,13 +31,14 @@ public class AuthServiceImpl implements AuthService {
     private final JwtUtil jwtUtil;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService; // Inject RefreshTokenService
 
-
-    public AuthServiceImpl(UserRepository userRepository, JwtUtil jwtUtil, UserMapper userMapper, PasswordEncoder passwordEncoder) {
+    public AuthServiceImpl(UserRepository userRepository, JwtUtil jwtUtil, UserMapper userMapper, PasswordEncoder passwordEncoder, RefreshTokenService refreshTokenService) {
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
+        this.refreshTokenService = refreshTokenService;
     }
 
     @Override
@@ -45,13 +50,20 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(ErrorCode.PASS_WORD_NOT_MATCH);
         }
 
+        String accessToken = jwtUtil.generateAccessToken(user.getUsername(), user.getRole().toString());
+        String refreshToken = jwtUtil.generateRefreshToken(user.getUsername());
+        String jti = jwtUtil.getJtiFromToken(refreshToken);
+        Date expiryDate = jwtUtil.getExpirationDateFromToken(refreshToken);
+        Duration duration = Duration.between(new Date().toInstant(), expiryDate.toInstant());
+        refreshTokenService.saveRefreshToken(jti, duration);
+
         LoginResponse loginResponse = new LoginResponse();
         loginResponse.setUserId(user.getId());
         loginResponse.setUsername(user.getUsername());
         loginResponse.setFullName(user.getFullName());
-        loginResponse.setToken(jwtUtil.generateAccessToken(user.getUsername(), user.getRole().toString()));
+        loginResponse.setToken(accessToken);
         loginResponse.setUserRole(user.getRole());
-        loginResponse.setRefreshToken(jwtUtil.generateRefreshToken(user.getUsername()));
+        loginResponse.setRefreshToken(refreshToken);
 
         return loginResponse;
     }
@@ -75,25 +87,48 @@ public class AuthServiceImpl implements AuthService {
         return userMapper.toUserResponse(userRepository.save(user));
     }
 
+    @Override
     public LoginResponse refreshToken(String refreshToken) {
-        if (!jwtUtil.validateToken(refreshToken)) {
-            throw new RuntimeException("Invalid refresh token");
+        String username;
+        String oldJti;
+
+        try {
+            if (!jwtUtil.validateToken(refreshToken)) {
+                throw new AppException(ErrorCode.INVALID_REFRESH_TOKEN);
+            }
+            username = jwtUtil.getUsernameFromToken(refreshToken);
+            oldJti = jwtUtil.getJtiFromToken(refreshToken);
+        } catch (ExpiredJwtException ex) {
+            throw new AppException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+        } catch (Exception ex) {
+            throw new AppException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
-        String username = jwtUtil.getUsernameFromToken(refreshToken);
+        if (!refreshTokenService.isValidRefreshToken(oldJti)) {
+            log.warn("Attempt to use invalid or revoked refresh token: {}", oldJti);
+            throw new AppException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
 
-        String newAccessToken = jwtUtil.generateAccessToken(username, userRepository.findByUsername(username).get().getRole().toString());
+        refreshTokenService.revokeRefreshToken(oldJti);
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        String newAccessToken = jwtUtil.generateAccessToken(username, user.getRole().toString());
         String newRefreshToken = jwtUtil.generateRefreshToken(username);
 
+        String newJti = jwtUtil.getJtiFromToken(newRefreshToken);
+        Date newExpiryDate = jwtUtil.getExpirationDateFromToken(newRefreshToken);
+        Duration duration = Duration.between(new Date().toInstant(), newExpiryDate.toInstant());
+        refreshTokenService.saveRefreshToken(newJti, duration);
+
         LoginResponse loginResponse = new LoginResponse();
-        loginResponse.setUserId(userRepository.findByUsername(username).get().getId());
+        loginResponse.setUserId(user.getId());
         loginResponse.setUsername(username);
-        loginResponse.setFullName(userRepository.findByUsername(username).get().getFullName());
+        loginResponse.setFullName(user.getFullName());
         loginResponse.setToken(newAccessToken);
         loginResponse.setRefreshToken(newRefreshToken);
 
         return loginResponse;
     }
-
-
 }

@@ -11,4 +11,5 @@ public interface BorrowService {
     BorrowResponse getBorrowById(Long id);
     BorrowResponse updateBorrow(Long id, BorrowUpdateRequest request);
     List<BorrowResponse> getAllBorrows();
+    BorrowResponse updateBorrowStatus(Long id, String status);
 }

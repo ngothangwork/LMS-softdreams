@@ -20,7 +20,8 @@ import java.time.LocalDate;
                         @ColumnResult(name = "id", type = Long.class),
                         @ColumnResult(name = "borrowDate", type = LocalDate.class),
                         @ColumnResult(name = "returnDate", type = LocalDate.class),
-                        @ColumnResult(name = "bookCopyId", type = Long.class),
+                        @ColumnResult(name = "bookId", type = Long.class),
+                        @ColumnResult(name = "barcode", type = String.class),
                         @ColumnResult(name = "bookName", type = String.class),
                         @ColumnResult(name = "userId", type = java.util.UUID.class),
                         @ColumnResult(name = "username", type = String.class),
@@ -28,18 +29,29 @@ import java.time.LocalDate;
                 }
         )
 )
+
 @NamedNativeQuery(
         name = "Borrow.findBorrowResponses",
         query = """
-                    SELECT\s
-                    b.id, b.borrow_date AS borrowDate, b.return_date AS returnDate, bc.id AS bookCopyId, bk.name AS bookName, u.id AS userId, u.username, b.status
+                    SELECT
+                        b.id,
+                        b.borrow_date AS borrowDate,
+                        b.return_date AS returnDate,
+                        b.book_id AS bookId,
+                        bc.id AS bookCopyId,
+                        bc.barcode AS barcode,
+                        bk.name AS bookName,
+                        u.id AS userId,
+                        u.username,
+                        b.status
                     FROM borrows b
-                    JOIN book_copies bc ON b.book_copy_id = bc.id
-                    JOIN books bk ON bc.book_id = bk.id
+                    JOIN books bk ON b.book_id = bk.id
                     JOIN users u ON b.user_id = u.id
+                    LEFT JOIN book_copies bc ON b.book_copy_id = bc.id;
                 """,
         resultSetMapping = "BorrowResponseMapping"
 )
+
 
 public class Borrow {
     @Id
@@ -50,7 +62,11 @@ public class Borrow {
     private LocalDate returnDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "book_copy_id", nullable = false)
+    @JoinColumn(name = "book_id", nullable = false)
+    private Book book;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "book_copy_id")
     private BookCopy bookCopy;
 
     @ManyToOne(fetch = FetchType.LAZY)

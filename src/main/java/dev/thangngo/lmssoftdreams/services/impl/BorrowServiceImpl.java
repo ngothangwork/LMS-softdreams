@@ -3,6 +3,7 @@ package dev.thangngo.lmssoftdreams.services.impl;
 import dev.thangngo.lmssoftdreams.dtos.request.borrow.BorrowCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.borrow.BorrowUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.borrow.BorrowResponse;
+import dev.thangngo.lmssoftdreams.entities.Book;
 import dev.thangngo.lmssoftdreams.entities.BookCopy;
 import dev.thangngo.lmssoftdreams.entities.Borrow;
 import dev.thangngo.lmssoftdreams.enums.BookStatus;
@@ -11,6 +12,7 @@ import dev.thangngo.lmssoftdreams.enums.ErrorCode;
 import dev.thangngo.lmssoftdreams.exceptions.AppException;
 import dev.thangngo.lmssoftdreams.mappers.BorrowMapper;
 import dev.thangngo.lmssoftdreams.repositories.BookCopyRepository;
+import dev.thangngo.lmssoftdreams.repositories.BookRepository;
 import dev.thangngo.lmssoftdreams.repositories.BorrowRepository;
 import dev.thangngo.lmssoftdreams.services.BorrowService;
 import org.springframework.stereotype.Service;
@@ -27,22 +29,24 @@ public class BorrowServiceImpl implements BorrowService {
     private final BorrowRepository borrowRepository;
     private final BorrowMapper borrowMapper;
     private final BookCopyRepository bookCopyRepository;
+    private final BookRepository bookRepository;
 
     public BorrowServiceImpl(BorrowRepository borrowRepository,
                              BorrowMapper borrowMapper,
-                             BookCopyRepository bookCopyRepository) {
+                             BookCopyRepository bookCopyRepository, BookRepository bookRepository) {
         this.borrowRepository = borrowRepository;
         this.borrowMapper = borrowMapper;
         this.bookCopyRepository = bookCopyRepository;
+        this.bookRepository = bookRepository;
     }
 
     @Override
     public BorrowResponse createBorrow(BorrowCreateRequest request) {
         validateDates(request.getBorrowDate(), request.getReturnDate());
-        ensureBookCopyAvailable(request.getBookCopyId());
+        bookRepository.findById(request.getBookId()).orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
 
         Borrow borrow = borrowMapper.toBorrow(request);
-        borrow.setStatus(BorrowStatus.BORROWED);
+        borrow.setStatus(BorrowStatus.REQUESTED);
         Borrow savedBorrow = borrowRepository.save(borrow);
 
         return borrowMapper.toBorrowResponse(savedBorrow);
@@ -61,23 +65,35 @@ public class BorrowServiceImpl implements BorrowService {
         Borrow borrow = borrowRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BORROW_NOT_FOUND));
 
-        if (request.getBorrowDate() != null && request.getReturnDate() != null) {
-            validateDates(request.getBorrowDate(), request.getReturnDate());
-        }
-
         if (request.getBookCopyId() != null) {
             ensureBookCopyAvailable(request.getBookCopyId());
+            BookCopy bookCopy = bookCopyRepository.findById(request.getBookCopyId())
+                    .orElseThrow(() -> new AppException(ErrorCode.BOOK_COPY_NOT_FOUND));
+
+            if (request.getStatus() == BorrowStatus.BORROWED) {
+                bookCopy.setStatus(BookStatus.UNAVAILABLE);
+                bookCopyRepository.save(bookCopy);
+            }
+            borrow.setBookCopy(bookCopy);
         }
-
         borrowMapper.updateBorrowFromDto(request, borrow);
-
         Borrow savedBorrow = borrowRepository.save(borrow);
         return borrowMapper.toBorrowResponse(savedBorrow);
     }
 
+
     @Override
     public List<BorrowResponse> getAllBorrows() {
         return borrowRepository.findAllBorrowResponses();
+    }
+
+    @Override
+    public BorrowResponse updateBorrowStatus(Long id, String status) {
+        Borrow borrow = borrowRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.BORROW_NOT_FOUND));
+        borrow.setStatus(BorrowStatus.valueOf(status));
+        Borrow savedBorrow = borrowRepository.save(borrow);
+        return borrowMapper.toBorrowResponse(savedBorrow);
     }
 
     private void ensureBookCopyAvailable(Long bookCopyId) {

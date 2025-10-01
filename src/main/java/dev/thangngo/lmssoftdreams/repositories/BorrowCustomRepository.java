@@ -5,5 +5,5 @@ import dev.thangngo.lmssoftdreams.dtos.response.borrow.BorrowResponse;
 import java.util.List;
 
 public interface BorrowCustomRepository {
-    public List<BorrowResponse> findAllBorrowResponses();
+    List<BorrowResponse> findAllBorrowResponses();
 }

@@ -24,11 +24,16 @@ public class SecurityConfig {
         http
                 .cors(cors -> {})
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // JWT stateless
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/public/**", "/uploads/**", "/books/search/**").permitAll()
+                        .requestMatchers("/auth/**", "/public/**", "/uploads/**", "/books/search/**", "/books/**", "/borrows/export/**").permitAll()
                         .requestMatchers("/manager/**").hasRole("ADMIN")
-                        .requestMatchers("/books/create/**", "/books/update/**", "/books/delete/**").hasRole("ADMIN")
+                        .requestMatchers("/books/create/**",
+                                "/books/update/**",
+                                "/books/delete/**",
+                                "/categories/**",
+                                "/authors/**", "/borrows/create/**"
+                                ).hasRole("ADMIN")
                         .requestMatchers("/books/customer/**").authenticated()
                         .anyRequest().authenticated()
                 )

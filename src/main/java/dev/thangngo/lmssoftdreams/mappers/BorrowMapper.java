@@ -3,6 +3,7 @@ package dev.thangngo.lmssoftdreams.mappers;
 import dev.thangngo.lmssoftdreams.dtos.request.borrow.BorrowCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.borrow.BorrowUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.borrow.BorrowResponse;
+import dev.thangngo.lmssoftdreams.entities.Book;
 import dev.thangngo.lmssoftdreams.entities.BookCopy;
 import dev.thangngo.lmssoftdreams.entities.Borrow;
 import dev.thangngo.lmssoftdreams.entities.User;
@@ -21,12 +22,20 @@ public interface BorrowMapper {
     BorrowResponse toBorrowResponse(Borrow borrow);
 
     @Mapping(target = "bookCopy", source = "bookCopyId", qualifiedByName = "mapBookCopy")
+    void updateBorrowFromDto(BorrowUpdateRequest request, @MappingTarget Borrow borrow);
+
+    @Mapping(target = "book", source = "bookId", qualifiedByName = "mapBook")
     @Mapping(target = "user", source = "userId", qualifiedByName = "mapUser")
     Borrow toBorrow(BorrowCreateRequest request);
 
-    @Mapping(target = "bookCopy", source = "bookCopyId", qualifiedByName = "mapBookCopy")
-    @Mapping(target = "user", source = "userId", qualifiedByName = "mapUser")
-    void updateBorrowFromDto(BorrowUpdateRequest request, @MappingTarget Borrow borrow);
+    @Named("mapBook")
+    default Book mapBook(Long id) {
+        if (id == null) return null;
+        Book book = new Book();
+        book.setId(id);
+        return book;
+    }
+
 
     @Named("mapBookCopy")
     default BookCopy mapBookCopy(Long id) {

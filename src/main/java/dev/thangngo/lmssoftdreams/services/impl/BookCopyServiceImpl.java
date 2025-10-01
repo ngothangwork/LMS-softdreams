@@ -2,6 +2,7 @@ package dev.thangngo.lmssoftdreams.services.impl;
 
 import dev.thangngo.lmssoftdreams.dtos.request.bookcopy.BookCopyCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.bookcopy.BookCopyUpdateRequest;
+import dev.thangngo.lmssoftdreams.dtos.response.bookcopy.BookCopyListResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.bookcopy.BookCopyResponse;
 import dev.thangngo.lmssoftdreams.entities.Book;
 import dev.thangngo.lmssoftdreams.entities.BookCopy;
@@ -75,5 +76,15 @@ public class BookCopyServiceImpl implements BookCopyService {
         return bookCopyRepository.findById(id)
                 .map(bookCopyMapper::toBookCopyResponse)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_COPY_NOT_FOUND));
+    }
+
+    @Override
+    public List<BookCopyListResponse> getListBookCopyResponse(Long bookId) {
+        return bookCopyRepository.findAllBookCopyByBookId(bookId);
+    }
+
+    @Override
+    public List<BookCopyListResponse> getListBookCopyResponseByStatus(String status, Long bookId) {
+        return bookCopyRepository.findAllBookCopyByBookIdAndStatus(bookId, status);
     }
 }

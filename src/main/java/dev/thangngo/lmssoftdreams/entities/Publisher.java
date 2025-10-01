@@ -1,6 +1,5 @@
 package dev.thangngo.lmssoftdreams.entities;
 
-import dev.thangngo.lmssoftdreams.dtos.response.author.AuthorUpdateResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.publisher.PublisherUpdateResponse;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -25,9 +24,10 @@ public class Publisher {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 150)
+    @Column(nullable = false, unique = true, length = 150, columnDefinition = "NVARCHAR(MAX)")
     private String name;
 
+    @Column(nullable = false, columnDefinition = "NVARCHAR(MAX)")
     private String address;
     private String phone;
 }
