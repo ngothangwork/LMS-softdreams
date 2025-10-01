@@ -2,6 +2,8 @@ package dev.thangngo.lmssoftdreams.services.impl;
 
 import dev.thangngo.lmssoftdreams.dtos.request.borrow.BorrowCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.borrow.BorrowUpdateRequest;
+import dev.thangngo.lmssoftdreams.dtos.response.bookcopy.BookCopyListResponse;
+import dev.thangngo.lmssoftdreams.dtos.response.bookcopy.BookCopyResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.borrow.BorrowResponse;
 import dev.thangngo.lmssoftdreams.entities.Book;
 import dev.thangngo.lmssoftdreams.entities.BookCopy;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Service
@@ -44,7 +47,10 @@ public class BorrowServiceImpl implements BorrowService {
     public BorrowResponse createBorrow(BorrowCreateRequest request) {
         validateDates(request.getBorrowDate(), request.getReturnDate());
         bookRepository.findById(request.getBookId()).orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
-
+        List<BookCopyListResponse> bookCopies = bookCopyRepository.findAllBookCopyByBookIdAndStatus(request.getBookId(), BookStatus.AVAILABLE.name());
+        if (bookCopies.isEmpty()) {
+            throw new AppException(ErrorCode.BOOK_COPY_NOT_FOUND_OR_NOT_AVAILABLE);
+        }
         Borrow borrow = borrowMapper.toBorrow(request);
         borrow.setStatus(BorrowStatus.REQUESTED);
         Borrow savedBorrow = borrowRepository.save(borrow);
@@ -114,6 +120,10 @@ public class BorrowServiceImpl implements BorrowService {
         }
         if (start.isBefore(LocalDate.now())) {
             throw new AppException(ErrorCode.START_DATE_BEFORE_CURRENT_DATE);
+        }
+        long daysBetween = ChronoUnit.DAYS.between(start, end);
+        if (daysBetween > 7) {
+            throw new AppException(ErrorCode.END_DATE_TOO_FAR);
         }
     }
 }

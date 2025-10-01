@@ -104,13 +104,11 @@ public class BorrowController {
     public ResponseEntity<byte[]> exportBorrowsPdf() throws Exception {
         List<BorrowResponse> borrows = borrowService.getAllBorrows();
 
-        // 1. Tạo thiết kế Jasper
         JasperDesign jasperDesign = new JasperDesign();
         jasperDesign.setName("BorrowsReport");
         jasperDesign.setPageWidth(595);
         jasperDesign.setPageHeight(842);
 
-        // Title
         JRDesignBand titleBand = new JRDesignBand();
         titleBand.setHeight(40);
 
@@ -145,7 +143,6 @@ public class BorrowController {
         detailBand.addElement(createField("status", String.class, 450, 100));
         ((JRDesignSection) jasperDesign.getDetailSection()).addBand(detailBand);
 
-        // Khai báo field
         jasperDesign.addField(createJRField("id", Long.class));
         jasperDesign.addField(createJRField("borrowDate", java.time.LocalDate.class));
         jasperDesign.addField(createJRField("returnDate", java.time.LocalDate.class));
@@ -153,7 +150,6 @@ public class BorrowController {
         jasperDesign.addField(createJRField("username", String.class));
         jasperDesign.addField(createJRField("status", String.class));
 
-        // Compile & Fill
         JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
         JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(borrows);
         JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, new HashMap<>(), dataSource);
@@ -179,7 +175,6 @@ public class BorrowController {
         jasperDesign.setPageWidth(595);
         jasperDesign.setPageHeight(842);
 
-        // Title
         JRDesignBand titleBand = new JRDesignBand();
         titleBand.setHeight(30);
         JRDesignStaticText title = new JRDesignStaticText();
@@ -192,18 +187,16 @@ public class BorrowController {
         titleBand.addElement(title);
         jasperDesign.setTitle(titleBand);
 
-        // Column Header
         JRDesignBand columnHeader = new JRDesignBand();
         columnHeader.setHeight(20);
         columnHeader.addElement(createHeader("ID", 0, 50));
-        columnHeader.addElement(createHeader("Borrow Date", 50, 100));
-        columnHeader.addElement(createHeader("Return Date", 150, 100));
-        columnHeader.addElement(createHeader("Book Name", 250, 150));
-        columnHeader.addElement(createHeader("Username", 400, 100));
-        columnHeader.addElement(createHeader("Status", 500, 95)); // thêm cột Status
+        columnHeader.addElement(createHeader("Ngày mươn", 50, 100));
+        columnHeader.addElement(createHeader("Ngày trả", 150, 100));
+        columnHeader.addElement(createHeader("Tên sách", 250, 150));
+        columnHeader.addElement(createHeader("Người mượn", 400, 100));
+        columnHeader.addElement(createHeader("Trạng thái", 500, 95));
         jasperDesign.setColumnHeader(columnHeader);
 
-// Detail
         JRDesignBand detailBand = new JRDesignBand();
         detailBand.setHeight(20);
         detailBand.addElement(createField("id", Long.class, 0, 50));
@@ -211,16 +204,15 @@ public class BorrowController {
         detailBand.addElement(createField("returnDate", java.time.LocalDate.class, 150, 100));
         detailBand.addElement(createField("bookName", String.class, 250, 150));
         detailBand.addElement(createField("username", String.class, 400, 100));
-        detailBand.addElement(createField("status", String.class, 500, 95)); // thêm cột Status
+        detailBand.addElement(createField("status", String.class, 500, 95));
         ((JRDesignSection) jasperDesign.getDetailSection()).addBand(detailBand);
 
-// Khai báo field
         jasperDesign.addField(createJRField("id", Long.class));
         jasperDesign.addField(createJRField("borrowDate", java.time.LocalDate.class));
         jasperDesign.addField(createJRField("returnDate", java.time.LocalDate.class));
         jasperDesign.addField(createJRField("bookName", String.class));
         jasperDesign.addField(createJRField("username", String.class));
-        jasperDesign.addField(createJRField("status", String.class)); // khai báo field Status
+        jasperDesign.addField(createJRField("status", String.class));
 
 
         JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);

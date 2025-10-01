@@ -47,7 +47,9 @@ public enum ErrorCode {
     MISSING_PARAMETER(1042, "Thiếu tham số yêu cầu", HttpStatus.BAD_REQUEST),
     ACCESS_DENIED(1043, "Bạn không có quyền truy cập", HttpStatus.FORBIDDEN),
     NOT_FOUND(1044, "Không tìm thấy tài nguyên", HttpStatus.NOT_FOUND),
-    INVALID_REQUEST(1045, "Request không hợp lệ", HttpStatus.BAD_REQUEST);
+    INVALID_REQUEST(1045, "Request không hợp lệ", HttpStatus.BAD_REQUEST),
+    BOOK_COPY_IS_NOT_AVAILABLE(1046, "Không có sách nào hiện đang hợp lệ", HttpStatus.CONFLICT),
+    END_DATE_TOO_FAR(1047, "không được mượn sách quá 7 ngày", HttpStatus.BAD_REQUEST);
 
 
     private final int code;

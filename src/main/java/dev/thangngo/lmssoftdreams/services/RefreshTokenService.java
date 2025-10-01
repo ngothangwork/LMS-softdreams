@@ -8,10 +8,7 @@ import java.time.Duration;
 @Service
 public class RefreshTokenService {
 
-    // Key prefix trong Redis để dễ phân biệt
     private static final String REFRESH_TOKEN_PREFIX = "refresh_token:";
-
-    // Sử dụng StringRedisTemplate của Spring Data Redis
     private final StringRedisTemplate redisTemplate;
 
     public RefreshTokenService(StringRedisTemplate redisTemplate) {
@@ -24,7 +21,6 @@ public class RefreshTokenService {
      * @param duration Thời gian hết hạn của token
      */
     public void saveRefreshToken(String jti, Duration duration) {
-        // Key là refresh_token:JTI. Value có thể là ID người dùng hoặc đơn giản là 'valid'
         redisTemplate.opsForValue().set(REFRESH_TOKEN_PREFIX + jti, "valid", duration);
     }
 
