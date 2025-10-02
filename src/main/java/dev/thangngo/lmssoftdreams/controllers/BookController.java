@@ -72,9 +72,9 @@ public class BookController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<BookDetailResponse>> getBookById(@PathVariable Long id) {
-        BookDetailResponse response = bookService.getBookById(id);
-        return ResponseEntity.ok(ApiResponse.<BookDetailResponse>builder()
+    public ResponseEntity<ApiResponse<BookDetailResponseDTO>> getBookById(@PathVariable Long id) {
+        BookDetailResponseDTO response = bookService.getBookById(id);
+        return ResponseEntity.ok(ApiResponse.<BookDetailResponseDTO>builder()
                 .message("Book fetched successfully")
                 .code(200)
                 .success(true)

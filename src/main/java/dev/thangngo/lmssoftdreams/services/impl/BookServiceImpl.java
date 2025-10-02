@@ -120,15 +120,10 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookDetailResponse getBookById(Long id) {
-        BookDetailResponse bookDetailResponse = bookRepository.findById(id)
-                .map(bookMapper::toBookDetailResponse)
+    public BookDetailResponseDTO getBookById(Long id) {
+        bookRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
-        int numberOfBookBorrow = bookCopyRepository.countByStatusAndBookId(BookStatus.UNAVAILABLE, id);
-        int numberOfBookAvailable = bookCopyRepository.countByStatusAndBookId(BookStatus.AVAILABLE, id);
-        bookDetailResponse.setNumberOfAvailable(numberOfBookAvailable);
-        bookDetailResponse.setNumberOfBorrowed(numberOfBookBorrow);
-        return bookDetailResponse;
+        return bookRepository.findBookById(id);
     }
 
     @Override
@@ -157,10 +152,10 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    @Cacheable(
-            value = "books-filter",
-            key = "{#request.type, #request.keyword, #pageable.pageNumber, #pageable.pageSize}"
-    )
+//    @Cacheable(
+//            value = "books-filter",
+//            key = "{#request.type, #request.keyword, #pageable.pageNumber, #pageable.pageSize}"
+//    )
     public PageResponse<BookResponse> filterBooks(BookSearchRequest request, Pageable pageable) {
         List<BookDetailResponseDTO> dtoList = bookRepository.filterBooks(request.getType(), request.getKeyword(), pageable);
         long total = bookRepository.countFilterBooks(request.getType(), request.getKeyword());
