@@ -1,8 +1,11 @@
 package dev.thangngo.lmssoftdreams.controllers;
 
+import dev.thangngo.lmssoftdreams.dtos.request.book.BookSearchRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.borrow.BorrowCreateRequest;
+import dev.thangngo.lmssoftdreams.dtos.request.borrow.BorrowSearchRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.borrow.BorrowUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.ApiResponse;
+import dev.thangngo.lmssoftdreams.dtos.response.PageResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.borrow.BorrowResponse;
 import dev.thangngo.lmssoftdreams.services.BorrowService;
 import jakarta.validation.Valid;
@@ -14,6 +17,10 @@ import net.sf.jasperreports.engine.type.HorizontalTextAlignEnum;
 import net.sf.jasperreports.engine.type.ModeEnum;
 import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
+import org.hibernate.query.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -97,6 +104,23 @@ public class BorrowController {
                 .message("Borrow status updated successfully")
                 .result(response)
                 .build());
+
+    }
+
+    @PostMapping("/search")
+    public ResponseEntity<ApiResponse<PageResponse<BorrowResponse>>> searchBorrow (
+            @RequestBody @Valid BorrowSearchRequest request,
+            @PageableDefault(size = 5, sort = "name", direction = Sort.Direction.ASC) Pageable pageable
+    ){
+        PageResponse<BorrowResponse> result = borrowService.searchBorrow(request, pageable);
+        return ResponseEntity.ok(
+                ApiResponse.<PageResponse<BorrowResponse>>builder()
+                        .success(true)
+                        .code(200)
+                        .message("")
+                        .result(result)
+                        .build()
+        );
 
     }
 

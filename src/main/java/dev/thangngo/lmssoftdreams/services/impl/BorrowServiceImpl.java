@@ -1,11 +1,11 @@
 package dev.thangngo.lmssoftdreams.services.impl;
 
 import dev.thangngo.lmssoftdreams.dtos.request.borrow.BorrowCreateRequest;
+import dev.thangngo.lmssoftdreams.dtos.request.borrow.BorrowSearchRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.borrow.BorrowUpdateRequest;
+import dev.thangngo.lmssoftdreams.dtos.response.PageResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.bookcopy.BookCopyListResponse;
-import dev.thangngo.lmssoftdreams.dtos.response.bookcopy.BookCopyResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.borrow.BorrowResponse;
-import dev.thangngo.lmssoftdreams.entities.Book;
 import dev.thangngo.lmssoftdreams.entities.BookCopy;
 import dev.thangngo.lmssoftdreams.entities.Borrow;
 import dev.thangngo.lmssoftdreams.enums.BookStatus;
@@ -17,9 +17,12 @@ import dev.thangngo.lmssoftdreams.repositories.BookCopyRepository;
 import dev.thangngo.lmssoftdreams.repositories.BookRepository;
 import dev.thangngo.lmssoftdreams.repositories.BorrowRepository;
 import dev.thangngo.lmssoftdreams.services.BorrowService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -100,6 +103,14 @@ public class BorrowServiceImpl implements BorrowService {
         borrow.setStatus(BorrowStatus.valueOf(status));
         Borrow savedBorrow = borrowRepository.save(borrow);
         return borrowMapper.toBorrowResponse(savedBorrow);
+    }
+
+    @Override
+    public PageResponse<BorrowResponse> searchBorrow(BorrowSearchRequest request, Pageable pageable) {
+        List<BorrowResponse> borrowResponseList = borrowRepository.searchBorrows(request.getKeyword(), pageable);
+        long total = borrowRepository.countSearchBorrows(request.getKeyword());
+        Page<BorrowResponse> page = new PageImpl<>(borrowResponseList, pageable, total);
+        return new PageResponse<>(page);
     }
 
     private void ensureBookCopyAvailable(Long bookCopyId) {

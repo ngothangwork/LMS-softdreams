@@ -157,10 +157,10 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-//    @Cacheable(
-//            value = "books-filter",
-//            key = "{#request.type, #request.keyword, #pageable.pageNumber, #pageable.pageSize}"
-//    )
+    @Cacheable(
+            value = "books-filter",
+            key = "{#request.type, #request.keyword, #pageable.pageNumber, #pageable.pageSize}"
+    )
     public PageResponse<BookResponse> filterBooks(BookSearchRequest request, Pageable pageable) {
         List<BookDetailResponseDTO> dtoList = bookRepository.filterBooks(request.getType(), request.getKeyword(), pageable);
         long total = bookRepository.countFilterBooks(request.getType(), request.getKeyword());
