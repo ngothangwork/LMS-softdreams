@@ -6,6 +6,8 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
 
+import java.awt.print.Pageable;
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -20,4 +22,17 @@ public class BorrowCustomRepositoryImpl implements BorrowCustomRepository {
                 .createNamedQuery("Borrow.findBorrowResponses", BorrowResponse.class)
                 .getResultList();
     }
+
+    @Override
+    public List<BorrowResponse> filterBorrowResponses(String keyword, Pageable pageable) {
+        List<BorrowResponse> list = new ArrayList<>();
+        return list;
+    }
+
+    @Override
+    public long countFilterBorrowResponses(String keyword) {
+        return 0;
+    }
+
+
 }

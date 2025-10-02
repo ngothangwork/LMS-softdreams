@@ -113,7 +113,7 @@ public class BorrowController {
         titleBand.setHeight(40);
 
         JRDesignStaticText title = new JRDesignStaticText();
-        title.setText("Borrows Report");
+        title.setText("Báo cáo mượn sách");
         title.setX(200);
         title.setY(10);
         title.setWidth(200);

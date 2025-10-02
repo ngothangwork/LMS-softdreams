@@ -47,7 +47,8 @@ import java.time.LocalDate;
                     FROM borrows b
                     JOIN books bk ON b.book_id = bk.id
                     JOIN users u ON b.user_id = u.id
-                    LEFT JOIN book_copies bc ON b.book_copy_id = bc.id;
+                    LEFT JOIN book_copies bc ON b.book_copy_id = bc.id
+                    ORDER BY b.borrow_date DESC;
                 """,
         resultSetMapping = "BorrowResponseMapping"
 )

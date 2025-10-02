@@ -98,6 +98,11 @@ public class BorrowServiceImpl implements BorrowService {
         Borrow borrow = borrowRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BORROW_NOT_FOUND));
         borrow.setStatus(BorrowStatus.valueOf(status));
+        if (borrow.getStatus() == BorrowStatus.RETURNED) {
+            BookCopy bookCopy = borrow.getBookCopy();
+            bookCopy.setStatus(BookStatus.AVAILABLE);
+            bookCopyRepository.save(bookCopy);
+        }
         Borrow savedBorrow = borrowRepository.save(borrow);
         return borrowMapper.toBorrowResponse(savedBorrow);
     }
