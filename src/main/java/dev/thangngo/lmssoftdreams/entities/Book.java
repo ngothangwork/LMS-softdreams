@@ -65,4 +65,6 @@ public class Book {
 
     @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<BookCopy> copies;
+
+    private boolean isActive;
 }

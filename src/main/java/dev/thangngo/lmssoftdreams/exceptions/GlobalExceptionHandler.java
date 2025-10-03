@@ -5,8 +5,10 @@ import dev.thangngo.lmssoftdreams.enums.ErrorCode;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -95,6 +97,38 @@ public class GlobalExceptionHandler {
                 List.of(e.getMessage()));
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<List<String>>> handleHttpMessageNotReadable(HttpMessageNotReadableException e) {
+        log.warn("JSON parse error: {}", e.getMessage());
+        String userFriendlyMessage = "Dữ liệu nhập vào không hợp lệ. Vui lòng kiểm tra định dạng JSON và giá trị của các trường.";
+        String causeMessage = e.getMostSpecificCause().getMessage();
+        String errorDetail = causeMessage;
+        if (causeMessage.contains("not one of the values accepted for Enum class")) {
+            String field = extractFieldName(causeMessage);
+            String values = extractEnumValues(causeMessage);
+            errorDetail = String.format("Trường '%s' chỉ được phép có giá trị: %s", field, values);
+        }
+
+        return buildResponse(
+                ErrorCode.JSON_PARSE_ERROR,
+                userFriendlyMessage,
+                HttpStatus.BAD_REQUEST,
+                List.of(errorDetail)
+        );
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiResponse<List<String>>> handleDataIntegrityViolation(DataIntegrityViolationException e) {
+        log.error("Database constraint violation: ", e);
+        return buildResponse(
+                ErrorCode.DB_CONSTRAINT_VIOLATION,
+                "Vi phạm ràng buộc dữ liệu",
+                HttpStatus.CONFLICT,
+                List.of(e.getMostSpecificCause().getMessage())
+        );
+    }
+
+
     private ResponseEntity<ApiResponse<List<String>>> buildResponse(
             ErrorCode errorCode,
             String message,
@@ -110,4 +144,23 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(status).body(apiResponse);
     }
+
+    private String extractFieldName(String message) {
+        int start = message.lastIndexOf("[\"");
+        int end = message.lastIndexOf("\"]");
+        if (start != -1 && end != -1 && start < end) {
+            return message.substring(start + 2, end);
+        }
+        return "unknown_field";
+    }
+
+    private String extractEnumValues(String message) {
+        int start = message.indexOf('[');
+        int end = message.indexOf(']', start);
+        if (start != -1 && end != -1 && start < end) {
+            return message.substring(start + 1, end);
+        }
+        return "unknown_values";
+    }
+
 }

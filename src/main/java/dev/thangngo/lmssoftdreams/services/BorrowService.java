@@ -13,7 +13,7 @@ public interface BorrowService {
     BorrowResponse createBorrow(BorrowCreateRequest request);
     BorrowResponse getBorrowById(Long id);
     BorrowResponse updateBorrow(Long id, BorrowUpdateRequest request);
-    List<BorrowResponse> getAllBorrows();
     BorrowResponse updateBorrowStatus(Long id, String status);
     PageResponse<BorrowResponse> searchBorrow(BorrowSearchRequest request, Pageable pageable);
+    List<BorrowResponse> searchBorrows(BorrowSearchRequest request, Pageable pageable);
 }

@@ -30,5 +30,8 @@ public class Publisher {
     @Column(nullable = false, columnDefinition = "NVARCHAR(MAX)")
     private String address;
     private String phone;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
 }
 

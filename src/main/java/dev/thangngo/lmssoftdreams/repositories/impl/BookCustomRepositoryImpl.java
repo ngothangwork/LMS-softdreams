@@ -1,6 +1,10 @@
 package dev.thangngo.lmssoftdreams.repositories.impl;
 
 import dev.thangngo.lmssoftdreams.dtos.response.book.BookDetailResponseDTO;
+import dev.thangngo.lmssoftdreams.entities.Author;
+import dev.thangngo.lmssoftdreams.entities.Book;
+import dev.thangngo.lmssoftdreams.entities.Category;
+import dev.thangngo.lmssoftdreams.entities.Publisher;
 import dev.thangngo.lmssoftdreams.repositories.BookCustomRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -57,7 +61,7 @@ public class BookCustomRepositoryImpl implements BookCustomRepository {
                         WHERE status = 'AVAILABLE'
                         GROUP BY book_id
                     ) available ON available.book_id = b.id
-                    WHERE b.name LIKE :name
+                    WHERE b.name LIKE :name AND b.is_active = 1
                     ORDER BY %s
                     OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
                 """;
@@ -124,7 +128,7 @@ public class BookCustomRepositoryImpl implements BookCustomRepository {
                         WHERE status = 'AVAILABLE'
                         GROUP BY book_id
                     ) available ON available.book_id = b.id
-                    WHERE %s LIKE :keyword
+                    WHERE %s LIKE :keyword AND b.is_active = 1
                     ORDER BY %s
                     OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
                 """;
@@ -206,7 +210,7 @@ public class BookCustomRepositoryImpl implements BookCustomRepository {
                     WHERE status = 'AVAILABLE'
                     GROUP BY book_id
                 ) available ON available.book_id = b.id
-                WHERE b.id = :id
+                WHERE b.id = :id AND b.is_active = 1
                 """);
         Query query = entityManager.createNativeQuery(sql.toString(), "BookDetailMapping");
         query.setParameter("id", id);
@@ -226,7 +230,7 @@ public class BookCustomRepositoryImpl implements BookCustomRepository {
                     SELECT COUNT(*)
                     FROM books b
                     LEFT JOIN publishers p ON b.publisher_id = p.id
-                    WHERE %s LIKE :keyword
+                    WHERE %s LIKE :keyword AND b.is_active = 1
                 """;
 
         String filterColumn;
@@ -247,6 +251,49 @@ public class BookCustomRepositoryImpl implements BookCustomRepository {
 
         return ((Number) query.getSingleResult()).longValue();
     }
+
+
+    @Override
+    public boolean existsByAuthorId(Long authorId) {
+        String sql = """
+        SELECT COUNT(*)
+        FROM books b
+        JOIN book_authors ba ON b.id = ba.book_id
+        WHERE ba.author_id = :authorId AND b.is_active = 1
+    """;
+        Query query = entityManager.createNativeQuery(sql);
+        query.setParameter("authorId", authorId);
+        Number count = (Number) query.getSingleResult();
+        return count.intValue() > 0;
+    }
+
+    @Override
+    public boolean existsByPublisherId(Long publisherId) {
+        String sql = """
+        SELECT COUNT(*)
+        FROM books b
+        WHERE b.publisher_id = :publisherId AND b.is_active = 1
+    """;
+        Query query = entityManager.createNativeQuery(sql);
+        query.setParameter("publisherId", publisherId);
+        Number count = (Number) query.getSingleResult();
+        return count.intValue() > 0;
+    }
+
+    @Override
+    public boolean existsByCategoryId(Long categoryId) {
+        String sql = """
+        SELECT COUNT(*)
+        FROM books b
+        JOIN book_categories bc ON b.id = bc.book_id
+        WHERE bc.category_id = :categoryId AND b.is_active = 1
+    """;
+        Query query = entityManager.createNativeQuery(sql);
+        query.setParameter("categoryId", categoryId);
+        Number count = (Number) query.getSingleResult();
+        return count.intValue() > 0;
+    }
+
 
 
 }

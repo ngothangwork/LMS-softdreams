@@ -7,6 +7,7 @@ import dev.thangngo.lmssoftdreams.dtos.response.PageResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.book.BookDetailResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.book.BookDetailResponseDTO;
 import dev.thangngo.lmssoftdreams.dtos.response.book.BookResponse;
+import dev.thangngo.lmssoftdreams.dtos.response.bookcopy.BookCopyListResponse;
 import dev.thangngo.lmssoftdreams.entities.*;
 import dev.thangngo.lmssoftdreams.enums.BookStatus;
 import dev.thangngo.lmssoftdreams.enums.ErrorCode;
@@ -76,6 +77,7 @@ public class BookServiceImpl implements BookService {
         book.setAuthors(authors);
         book.setCategories(categories);
         book.setPublisher(publisher);
+        book.setActive(true);
 
         return bookMapper.toBookResponse(bookRepository.save(book));
     }
@@ -116,7 +118,12 @@ public class BookServiceImpl implements BookService {
     public void deleteBook(Long id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
-        bookRepository.delete(book);
+        List<BookCopyListResponse> bookCopies = bookCopyRepository.findAllBookCopyByBookIdAndStatus(id, BookStatus.UNAVAILABLE.name());
+        if(!bookCopies.isEmpty()) {
+            throw new AppException(ErrorCode.BOOK_IS_USING);
+        }
+        book.setActive(false);
+        bookRepository.save(book);
     }
 
     @Override
@@ -152,10 +159,10 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-//    @Cacheable(
-//            value = "books-filter",
-//            key = "{#request.type, #request.keyword, #pageable.pageNumber, #pageable.pageSize}"
-//    )
+    @Cacheable(
+            value = "books-filter",
+            key = "{#request.type, #request.keyword, #pageable.pageNumber, #pageable.pageSize}"
+    )
     public PageResponse<BookResponse> filterBooks(BookSearchRequest request, Pageable pageable) {
         List<BookDetailResponseDTO> dtoList = bookRepository.filterBooks(request.getType(), request.getKeyword(), pageable);
         long total = bookRepository.countFilterBooks(request.getType(), request.getKeyword());

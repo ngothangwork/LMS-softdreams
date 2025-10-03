@@ -5,13 +5,14 @@ import dev.thangngo.lmssoftdreams.dtos.request.author.AuthorUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.author.AuthorResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.author.AuthorUpdateResponse;
 import dev.thangngo.lmssoftdreams.entities.Author;
+import dev.thangngo.lmssoftdreams.entities.Book;
 import dev.thangngo.lmssoftdreams.enums.ErrorCode;
 import dev.thangngo.lmssoftdreams.exceptions.AppException;
 import dev.thangngo.lmssoftdreams.mappers.AuthorMapper;
 import dev.thangngo.lmssoftdreams.repositories.AuthorRepository;
+import dev.thangngo.lmssoftdreams.repositories.BookRepository;
 import dev.thangngo.lmssoftdreams.services.AuthorService;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,12 +24,14 @@ import java.util.List;
 public class AuthorServiceImpl implements AuthorService {
 
     private final AuthorRepository authorRepository;
+    private final BookRepository bookRepository;
     private final AuthorMapper authorMapper;
 
     public AuthorServiceImpl(AuthorRepository authorRepository,
-                             AuthorMapper authorMapper) {
+                             AuthorMapper authorMapper, BookRepository bookRepository) {
         this.authorRepository = authorRepository;
         this.authorMapper = authorMapper;
+        this.bookRepository = bookRepository;
     }
 
     @Override
@@ -40,7 +43,7 @@ public class AuthorServiceImpl implements AuthorService {
 
     @Override
     public Page<AuthorResponse> getAuthorByName(String username, Pageable pageable) {
-        Page<Author> page = authorRepository.findByNameContainingIgnoreCase(username, pageable);
+        Page<Author> page = authorRepository.findByNameContainingIgnoreCaseAndIsActive(username, pageable, true);
         return page.map(authorMapper::toAuthorResponse);
     }
 
@@ -76,9 +79,13 @@ public class AuthorServiceImpl implements AuthorService {
     public void deleteAuthor(Long id) {
         Author author = authorRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.AUTHOR_NOT_FOUND));
-
-        authorRepository.delete(author);
+        if (bookRepository.existsByAuthorId(id)) {
+            throw new AppException(ErrorCode.AUTHOR_IS_USING);
+        }
+        author.setIsActive(false);
+        authorRepository.save(author);
     }
+
 
     @Override
     public List<AuthorUpdateResponse> getAuthorUpdate() {

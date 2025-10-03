@@ -30,27 +30,7 @@ import java.time.LocalDate;
         )
 )
 
-@NamedNativeQuery(
-        name = "Borrow.findBorrowResponses",
-        query = """
-                    SELECT
-                        b.id,
-                        b.borrow_date AS borrowDate,
-                        b.return_date AS returnDate,
-                        b.book_id AS bookId,
-                        bc.id AS bookCopyId,
-                        bc.barcode AS barcode,
-                        bk.name AS bookName,
-                        u.id AS userId,
-                        u.username,
-                        b.status
-                    FROM borrows b
-                    JOIN books bk ON b.book_id = bk.id
-                    JOIN users u ON b.user_id = u.id
-                    LEFT JOIN book_copies bc ON b.book_copy_id = bc.id;
-                """,
-        resultSetMapping = "BorrowResponseMapping"
-)
+
 
 
 public class Borrow {

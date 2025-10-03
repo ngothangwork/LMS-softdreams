@@ -1,5 +1,6 @@
 package dev.thangngo.lmssoftdreams.dtos.request.publisher;
 
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,6 +9,7 @@ import lombok.Setter;
 @Setter
 public class PublisherUpdateRequest {
 
+    @Pattern(regexp = "^[\\p{L} ]+$", message = "Publisher name can only contain letters and spaces")
     @Size(min = 4, max = 100, message = "Publisher name must be between 4 and 100 characters")
     private String name;
 

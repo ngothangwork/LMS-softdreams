@@ -13,8 +13,7 @@ import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.design.*;
 import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
-import net.sf.jasperreports.engine.type.HorizontalTextAlignEnum;
-import net.sf.jasperreports.engine.type.ModeEnum;
+import net.sf.jasperreports.engine.type.*;
 import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
 import org.hibernate.query.Page;
@@ -67,16 +66,6 @@ public class BorrowController {
                 .build());
     }
 
-    @GetMapping
-    public ResponseEntity<ApiResponse<List<BorrowResponse>>> getAllBorrows() {
-        List<BorrowResponse> response = borrowService.getAllBorrows();
-        return ResponseEntity.ok(ApiResponse.<List<BorrowResponse>>builder()
-                .success(true)
-                .code(200)
-                .message("Borrows fetched successfully")
-                .result(response)
-                .build());
-    }
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<BorrowResponse>> updateBorrow(
@@ -124,9 +113,12 @@ public class BorrowController {
 
     }
 
-    @GetMapping("/export")
-    public ResponseEntity<byte[]> exportBorrowsPdf() throws Exception {
-        List<BorrowResponse> borrows = borrowService.getAllBorrows();
+    @PostMapping("/export")
+    public ResponseEntity<byte[]> exportBorrowsPdf(
+            @RequestBody @Valid BorrowSearchRequest request,
+            @PageableDefault(size = 5, sort = "name", direction = Sort.Direction.ASC) Pageable pageable
+    ) throws Exception {
+        List<BorrowResponse> borrows = borrowService.searchBorrows(request, pageable);
 
         JasperDesign jasperDesign = new JasperDesign();
         jasperDesign.setName("BorrowsReport");
@@ -150,21 +142,33 @@ public class BorrowController {
         JRDesignBand columnHeader = new JRDesignBand();
         columnHeader.setHeight(20);
         columnHeader.addElement(createHeader("ID", 0, 50));
-        columnHeader.addElement(createHeader("Borrow Date", 50, 100));
-        columnHeader.addElement(createHeader("Return Date", 150, 100));
-        columnHeader.addElement(createHeader("Book Name", 250, 100));
-        columnHeader.addElement(createHeader("Username", 350, 100));
-        columnHeader.addElement(createHeader("Status", 450, 100));
+        columnHeader.addElement(createHeader("Borrow Date", 50, 90));
+        columnHeader.addElement(createHeader("Return Date", 140, 90));
+        columnHeader.addElement(createHeader("Book Name", 230, 170));
+        columnHeader.addElement(createHeader("Username", 400, 90));
+        columnHeader.addElement(createHeader("Status", 490, 80));
         jasperDesign.setColumnHeader(columnHeader);
 
         JRDesignBand detailBand = new JRDesignBand();
         detailBand.setHeight(20);
-        detailBand.addElement(createField("id", Long.class, 0, 50));
-        detailBand.addElement(createField("borrowDate", java.time.LocalDate.class, 50, 100));
-        detailBand.addElement(createField("returnDate", java.time.LocalDate.class, 150, 100));
-        detailBand.addElement(createField("bookName", String.class, 250, 100));
-        detailBand.addElement(createField("username", String.class, 350, 100));
-        detailBand.addElement(createField("status", String.class, 450, 100));
+        JRDesignTextField idField = createField("id", Long.class, 0, 50);
+        idField.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+        detailBand.addElement(idField);
+        JRDesignTextField borrowDateField = createField("borrowDate", java.time.LocalDate.class, 50, 90);
+        borrowDateField.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+        detailBand.addElement(borrowDateField);
+
+        JRDesignTextField returnDateField = createField("returnDate", java.time.LocalDate.class, 140, 90);
+        returnDateField.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+        detailBand.addElement(returnDateField);
+
+        detailBand.addElement(createField("bookName", String.class, 230, 170));
+
+        JRDesignTextField usernameField = createField("username", String.class, 400, 90);
+        usernameField.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+        detailBand.addElement(usernameField);
+
+        detailBand.addElement(createField("status", String.class, 490, 80));
         ((JRDesignSection) jasperDesign.getDetailSection()).addBand(detailBand);
 
         jasperDesign.addField(createJRField("id", Long.class));
@@ -190,9 +194,12 @@ public class BorrowController {
     }
 
 
-    @GetMapping("/export-excel")
-    public ResponseEntity<byte[]> exportBorrowsExcel() throws Exception {
-        List<BorrowResponse> borrows = borrowService.getAllBorrows();
+    @PostMapping("/export-excel")
+    public ResponseEntity<byte[]> exportBorrowsExcel(
+            @RequestBody @Valid BorrowSearchRequest request,
+            @PageableDefault(size = 5, sort = "name", direction = Sort.Direction.ASC) Pageable pageable
+    ) throws Exception {
+        List<BorrowResponse> borrows = borrowService.searchBorrows(request, pageable);
 
         JasperDesign jasperDesign = new JasperDesign();
         jasperDesign.setName("BorrowsExcel");
@@ -214,21 +221,35 @@ public class BorrowController {
         JRDesignBand columnHeader = new JRDesignBand();
         columnHeader.setHeight(20);
         columnHeader.addElement(createHeader("ID", 0, 50));
-        columnHeader.addElement(createHeader("Ngày mươn", 50, 100));
-        columnHeader.addElement(createHeader("Ngày trả", 150, 100));
-        columnHeader.addElement(createHeader("Tên sách", 250, 150));
-        columnHeader.addElement(createHeader("Người mượn", 400, 100));
-        columnHeader.addElement(createHeader("Trạng thái", 500, 95));
+        columnHeader.addElement(createHeader("Ngày mươn", 50, 90));
+        columnHeader.addElement(createHeader("Ngày trả", 140, 90));
+        columnHeader.addElement(createHeader("Tên sách", 230, 70));
+        columnHeader.addElement(createHeader("Người mượn", 400, 90));
+        columnHeader.addElement(createHeader("Trạng thái", 490, 80));
         jasperDesign.setColumnHeader(columnHeader);
 
         JRDesignBand detailBand = new JRDesignBand();
         detailBand.setHeight(20);
-        detailBand.addElement(createField("id", Long.class, 0, 50));
-        detailBand.addElement(createField("borrowDate", java.time.LocalDate.class, 50, 100));
-        detailBand.addElement(createField("returnDate", java.time.LocalDate.class, 150, 100));
-        detailBand.addElement(createField("bookName", String.class, 250, 150));
-        detailBand.addElement(createField("username", String.class, 400, 100));
-        detailBand.addElement(createField("status", String.class, 500, 95));
+
+        JRDesignTextField idField = createField("id", Long.class, 0, 50);
+        idField.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+        detailBand.addElement(idField);
+
+        JRDesignTextField borrowDateField = createField("borrowDate", java.time.LocalDate.class, 50, 90);
+        borrowDateField.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+        detailBand.addElement(borrowDateField);
+
+        JRDesignTextField returnDateField = createField("returnDate", java.time.LocalDate.class, 140, 90);
+        returnDateField.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+        detailBand.addElement(returnDateField);
+
+        detailBand.addElement(createField("bookName", String.class, 230, 170));
+
+        JRDesignTextField usernameField = createField("username", String.class, 400, 90);
+        usernameField.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+        detailBand.addElement(usernameField);
+
+        detailBand.addElement(createField("status", String.class, 490, 80));
         ((JRDesignSection) jasperDesign.getDetailSection()).addBand(detailBand);
 
         jasperDesign.addField(createJRField("id", Long.class));
@@ -268,11 +289,21 @@ public class BorrowController {
         header.setHeight(20);
         header.setBold(true);
         header.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+        header.setVerticalTextAlign(VerticalTextAlignEnum.MIDDLE);
         header.setBackcolor(new Color(220, 220, 220));
         header.setMode(ModeEnum.OPAQUE);
         header.getLineBox().getPen().setLineWidth(1f);
+
+        header.setFontName("DejaVu Sans");
+        header.setPdfEncoding("Identity-H");
+        header.setPdfEmbedded(true);
+
+        header.setStretchType(StretchTypeEnum.RELATIVE_TO_TALLEST_OBJECT);
+        header.setPositionType(PositionTypeEnum.FLOAT);
+
         return header;
     }
+
 
     private JRDesignTextField createField(String fieldName, Class<?> clazz, int x, int width) {
         JRDesignTextField field = new JRDesignTextField();
@@ -285,11 +316,21 @@ public class BorrowController {
         expression.setText("$F{" + fieldName + "}");
         expression.setValueClass(clazz);
         field.setExpression(expression);
-
+        field.setVerticalTextAlign(VerticalTextAlignEnum.MIDDLE);
         field.getLineBox().getPen().setLineWidth(1f);
+        field.getLineBox().setLeftPadding(5);
+        field.setFontName("DejaVu Sans");
+
+        field.setPdfEncoding("Identity-H");
+        field.setPdfEmbedded(true);
+
+        field.setStretchWithOverflow(true);
+        field.setStretchType(StretchTypeEnum.RELATIVE_TO_TALLEST_OBJECT);
+        field.setPositionType(PositionTypeEnum.FLOAT);
 
         return field;
     }
+
 
     private JRDesignField createJRField(String name, Class<?> clazz) {
         JRDesignField field = new JRDesignField();

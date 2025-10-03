@@ -9,5 +9,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AuthorRepository extends JpaRepository<Author, Long>, AuthorCustomRepository {
-    Page<Author> findByNameContainingIgnoreCase(String keyword, Pageable pageable);
+    Page<Author> findByNameContainingIgnoreCaseAndIsActive(String keyword, Pageable pageable, boolean isActive);
 }

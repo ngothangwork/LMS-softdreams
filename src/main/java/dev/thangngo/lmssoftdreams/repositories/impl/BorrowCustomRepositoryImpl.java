@@ -16,12 +16,6 @@ public class BorrowCustomRepositoryImpl implements BorrowCustomRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
-    @Override
-    public List<BorrowResponse> findAllBorrowResponses() {
-        return entityManager
-                .createNamedQuery("Borrow.findBorrowResponses", BorrowResponse.class)
-                .getResultList();
-    }
 
     @Override
     public List<BorrowResponse> searchBorrows(String keyword, Pageable pageable) {

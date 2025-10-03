@@ -4,10 +4,12 @@ import dev.thangngo.lmssoftdreams.dtos.request.category.CategoryCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.category.CategoryUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.category.CategoryResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.category.CategoryUpdateResponse;
+import dev.thangngo.lmssoftdreams.entities.Book;
 import dev.thangngo.lmssoftdreams.entities.Category;
 import dev.thangngo.lmssoftdreams.enums.ErrorCode;
 import dev.thangngo.lmssoftdreams.exceptions.AppException;
 import dev.thangngo.lmssoftdreams.mappers.CategoryMapper;
+import dev.thangngo.lmssoftdreams.repositories.BookRepository;
 import dev.thangngo.lmssoftdreams.repositories.CategoryRepository;
 import dev.thangngo.lmssoftdreams.services.CategoryService;
 import org.springframework.stereotype.Service;
@@ -19,19 +21,22 @@ import java.util.List;
 @Transactional
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
+    private final BookRepository bookRepository;
     private final CategoryMapper categoryMapper;
 
-    public CategoryServiceImpl(CategoryRepository categoryRepository, CategoryMapper categoryMapper) {
+    public CategoryServiceImpl(CategoryRepository categoryRepository, CategoryMapper categoryMapper, BookRepository bookRepository) {
         this.categoryRepository = categoryRepository;
         this.categoryMapper = categoryMapper;
+        this.bookRepository = bookRepository;
     }
 
     @Override
     public CategoryResponse createCategory(CategoryCreateRequest categoryCreateRequest) {
-        Category category = categoryRepository.findByName(categoryCreateRequest.getName()).orElse(null);
+        Category category = categoryRepository.findByName(categoryCreateRequest.getName().trim()).orElse(null);
         if (category != null) {
             throw new AppException(ErrorCode.CATEGORY_ALREADY_EXISTS);
         }
+        categoryCreateRequest.setName(categoryCreateRequest.getName().trim());
         category = categoryMapper.toCategory(categoryCreateRequest);
         return categoryMapper.toCategoryResponse(categoryRepository.save(category));
     }
@@ -42,12 +47,12 @@ public class CategoryServiceImpl implements CategoryService {
                 .findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
 
-        if (categoryRepository.findByName(categoryUpdateRequest.getName())
+        if (categoryRepository.findByName(categoryUpdateRequest.getName().trim())
                 .filter(c -> !c.getId().equals(id))
                 .isPresent()) {
             throw new AppException(ErrorCode.CATEGORY_ALREADY_EXISTS);
         }
-
+        categoryUpdateRequest.setName(categoryUpdateRequest.getName().trim());
         categoryMapper.updateCategoryFromDto(categoryUpdateRequest, category);
         return categoryMapper.toCategoryResponse(categoryRepository.save(category));
     }
@@ -57,7 +62,12 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = categoryRepository
                 .findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-        categoryRepository.delete(category);
+
+        if (bookRepository.existsByCategoryId(id)) {
+            throw new AppException(ErrorCode.CATEGORY_IS_USING);
+        }
+        category.setIsActive(false);
+        categoryRepository.save(category);
     }
 
     @Override
@@ -77,7 +87,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryResponse> getAllCategories() {
-        return categoryRepository.findAll().stream()
+        return categoryRepository.getAllCategories().stream()
                 .map(categoryMapper::toCategoryResponse).toList();
     }
 
