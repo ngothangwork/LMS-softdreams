@@ -49,7 +49,13 @@ public enum ErrorCode {
     NOT_FOUND(1044, "Không tìm thấy tài nguyên", HttpStatus.NOT_FOUND),
     INVALID_REQUEST(1045, "Request không hợp lệ", HttpStatus.BAD_REQUEST),
     BOOK_COPY_IS_NOT_AVAILABLE(1046, "Không có sách nào hiện đang hợp lệ", HttpStatus.CONFLICT),
-    END_DATE_TOO_FAR(1047, "không được mượn sách quá 7 ngày", HttpStatus.BAD_REQUEST);
+    END_DATE_TOO_FAR(1047, "không được mượn sách quá 7 ngày", HttpStatus.BAD_REQUEST),
+    BOOK_IS_USING(1048, "Sách đang được mượn, không thể xóa", HttpStatus.CONFLICT),
+    AUTHOR_IS_USING(1049, "Đang có sách sử dụng tác giả, không thể xóa", HttpStatus.CONFLICT),
+    CATEGORY_IS_USING(1050, "Đang có sách sử dụng thể loại, không thể xóa", HttpStatus.CONFLICT),
+    PUBLISHER_IS_USING(1050, "Đang có sách sử dụng nhà xuất bản, không thể xóa", HttpStatus.CONFLICT),
+    JSON_PARSE_ERROR(1051, "Dữ liệu đầu vào không hợp lệ", HttpStatus.BAD_REQUEST),
+    DB_CONSTRAINT_VIOLATION(1052, "Vi phạm ràng buộc dữ liệu", HttpStatus.BAD_REQUEST);
 
 
     private final int code;

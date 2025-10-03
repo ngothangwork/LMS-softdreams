@@ -9,4 +9,9 @@ public interface BookCustomRepository {
     List<BookDetailResponseDTO> searchBooksByName(String name, Pageable pageable);
     long countFilterBooks(String type, String keyword);
     List<BookDetailResponseDTO> filterBooks(String type, String keyword, Pageable pageable);
+    BookDetailResponseDTO findBookById(Long id);
+    boolean existsByAuthorId(Long authorId);
+    boolean existsByPublisherId(Long publisherId);
+    boolean existsByCategoryId(Long categoryId);
+
 }

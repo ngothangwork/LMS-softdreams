@@ -8,7 +8,7 @@ import lombok.Setter;
 @Setter
 public class BookSearchRequest {
 
-    @NotNull(message = "Type is required")
     private String type;
+
     private String keyword;
 }

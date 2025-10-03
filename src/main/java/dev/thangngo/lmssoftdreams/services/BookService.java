@@ -16,7 +16,7 @@ public interface BookService {
     BookResponse createBook(BookCreateRequest request);
     BookResponse updateBook(Long id, BookUpdateRequest request);
     void deleteBook(Long id);
-    BookDetailResponse getBookById(Long id);
+    BookDetailResponseDTO getBookById(Long id);
     List<BookResponse> getAllBooks();
     List<BookResponse> getBooksByName(String name);
     BookUpdateRequest getBookUpdateById(Long id);

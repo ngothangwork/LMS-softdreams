@@ -4,10 +4,12 @@ import dev.thangngo.lmssoftdreams.dtos.request.publisher.PublisherCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.publisher.PublisherUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.publisher.PublisherResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.publisher.PublisherUpdateResponse;
+import dev.thangngo.lmssoftdreams.entities.Book;
 import dev.thangngo.lmssoftdreams.entities.Publisher;
 import dev.thangngo.lmssoftdreams.enums.ErrorCode;
 import dev.thangngo.lmssoftdreams.exceptions.AppException;
 import dev.thangngo.lmssoftdreams.mappers.PublisherMapper;
+import dev.thangngo.lmssoftdreams.repositories.BookRepository;
 import dev.thangngo.lmssoftdreams.repositories.PublisherRepository;
 import dev.thangngo.lmssoftdreams.services.PublisherService;
 import org.springframework.stereotype.Service;
@@ -19,10 +21,12 @@ public class PublisherServiceImpl implements PublisherService {
 
     private final PublisherRepository publisherRepository;
     private final PublisherMapper publisherMapper;
+    private final BookRepository bookRepository;
 
-    public PublisherServiceImpl(PublisherRepository publisherRepository, PublisherMapper publisherMapper) {
+    public PublisherServiceImpl(PublisherRepository publisherRepository, PublisherMapper publisherMapper, BookRepository bookRepository) {
         this.publisherRepository = publisherRepository;
         this.publisherMapper = publisherMapper;
+        this.bookRepository = bookRepository;
     }
 
     @Override
@@ -34,7 +38,7 @@ public class PublisherServiceImpl implements PublisherService {
 
     @Override
     public List<PublisherResponse> getPublisherByName(String name) {
-        return publisherRepository.findByNameContaining(name)
+        return publisherRepository.findByNameContainingAndIsActive(name, true)
                 .stream()
                 .map(publisherMapper::toPublisherResponse)
                 .toList();
@@ -55,7 +59,12 @@ public class PublisherServiceImpl implements PublisherService {
     public void deletePublisher(Long id) {
         Publisher publisher = publisherRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PUBLISHER_NOT_FOUND));
-        publisherRepository.delete(publisher);
+
+        if (bookRepository.existsByPublisherId(id)) {
+            throw new AppException(ErrorCode.PUBLISHER_IS_USING);
+        }
+        publisher.setIsActive(false);
+        publisherRepository.save(publisher);
     }
 
     @Override

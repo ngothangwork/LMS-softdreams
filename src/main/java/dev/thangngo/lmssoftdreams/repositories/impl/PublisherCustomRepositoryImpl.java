@@ -20,7 +20,7 @@ public class PublisherCustomRepositoryImpl implements PublisherCustomRepository 
 
     @Override
     public List<PublisherUpdateResponse> findAllPublisherUpdateResponses() {
-        String sql = "SELECT p.id, p.name FROM publishers p";
+        String sql = "SELECT p.id, p.name FROM publishers p WHERE p.is_active = 1";
         return entityManager.createNativeQuery(sql, "PublisherUpdateMapping").getResultList();
     }
 }

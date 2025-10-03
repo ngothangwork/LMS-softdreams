@@ -22,7 +22,7 @@ public class AuthorCustomRepositoryImpl implements AuthorCustomRepository {
 
     @Override
     public List<AuthorUpdateResponse> findAllAuthorUpdateResponses() {
-        String sql = "SELECT a.id, a.name FROM authors a";
+        String sql = "SELECT a.id, a.name FROM authors a WHERE a.is_active = 1";
         return entityManager.createNativeQuery(sql, "AuthorUpdateMapping").getResultList();
     }
 }

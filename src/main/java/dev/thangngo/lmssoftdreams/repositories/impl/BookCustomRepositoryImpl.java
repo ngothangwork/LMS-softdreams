@@ -1,6 +1,10 @@
 package dev.thangngo.lmssoftdreams.repositories.impl;
 
 import dev.thangngo.lmssoftdreams.dtos.response.book.BookDetailResponseDTO;
+import dev.thangngo.lmssoftdreams.entities.Author;
+import dev.thangngo.lmssoftdreams.entities.Book;
+import dev.thangngo.lmssoftdreams.entities.Category;
+import dev.thangngo.lmssoftdreams.entities.Publisher;
 import dev.thangngo.lmssoftdreams.repositories.BookCustomRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -19,49 +23,48 @@ public class BookCustomRepositoryImpl implements BookCustomRepository {
     private EntityManager entityManager;
 
 
-
     @Override
     public List<BookDetailResponseDTO> searchBooksByName(String name, Pageable pageable) {
         String baseSql = """
-        SELECT b.id,
-               b.name,
-               b.isbn,
-               b.avatar,
-               p.name AS publisherName,
-               authors.authors,
-               categories.categories,
-               ISNULL(borrowed.count_borrowed, 0) AS numberOfBorrowed,
-               ISNULL(available.count_available, 0) AS numberOfAvailable
-        FROM books b
-        LEFT JOIN publishers p ON b.publisher_id = p.id
-        CROSS APPLY (
-            SELECT STRING_AGG(a.name, ', ') AS authors
-            FROM book_authors ba
-            JOIN authors a ON ba.author_id = a.id
-            WHERE ba.book_id = b.id
-        ) authors
-        CROSS APPLY (
-            SELECT STRING_AGG(c.name, ', ') AS categories
-            FROM book_categories bc
-            JOIN categories c ON bc.category_id = c.id
-            WHERE bc.book_id = b.id
-        ) categories
-        LEFT JOIN (
-            SELECT book_id, COUNT(*) AS count_borrowed
-            FROM book_copies
-            WHERE status = 'BORROWED'
-            GROUP BY book_id
-        ) borrowed ON borrowed.book_id = b.id
-        LEFT JOIN (
-            SELECT book_id, COUNT(*) AS count_available
-            FROM book_copies
-            WHERE status = 'AVAILABLE'
-            GROUP BY book_id
-        ) available ON available.book_id = b.id
-        WHERE b.name LIKE :name
-        ORDER BY %s
-        OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
-    """;
+                    SELECT b.id,
+                           b.name,
+                           b.isbn,
+                           b.avatar,
+                           p.name AS publisherName,
+                           authors.authors,
+                           categories.categories,
+                           ISNULL(borrowed.count_borrowed, 0) AS numberOfBorrowed,
+                           ISNULL(available.count_available, 0) AS numberOfAvailable
+                    FROM books b
+                    LEFT JOIN publishers p ON b.publisher_id = p.id
+                    CROSS APPLY (
+                        SELECT STRING_AGG(a.name, ', ') AS authors
+                        FROM book_authors ba
+                        JOIN authors a ON ba.author_id = a.id
+                        WHERE ba.book_id = b.id
+                    ) authors
+                    CROSS APPLY (
+                        SELECT STRING_AGG(c.name, ', ') AS categories
+                        FROM book_categories bc
+                        JOIN categories c ON bc.category_id = c.id
+                        WHERE bc.book_id = b.id
+                    ) categories
+                    LEFT JOIN (
+                        SELECT book_id, COUNT(*) AS count_borrowed
+                        FROM book_copies
+                        WHERE status = 'BORROWED'
+                        GROUP BY book_id
+                    ) borrowed ON borrowed.book_id = b.id
+                    LEFT JOIN (
+                        SELECT book_id, COUNT(*) AS count_available
+                        FROM book_copies
+                        WHERE status = 'AVAILABLE'
+                        GROUP BY book_id
+                    ) available ON available.book_id = b.id
+                    WHERE b.name LIKE :name AND b.is_active = 1
+                    ORDER BY %s
+                    OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
+                """;
 
         String orderByColumn = "b.name";
         boolean asc = true;
@@ -90,50 +93,52 @@ public class BookCustomRepositoryImpl implements BookCustomRepository {
     @Override
     public List<BookDetailResponseDTO> filterBooks(String type, String keyword, Pageable pageable) {
         String baseSql = """
-        SELECT b.id,
-               b.name,
-               b.isbn,
-               b.avatar,
-               p.name AS publisherName,
-               authors.authors,
-               categories.categories,
-               ISNULL(borrowed.count_borrowed, 0) AS numberOfBorrowed,
-               ISNULL(available.count_available, 0) AS numberOfAvailable
-        FROM books b
-        LEFT JOIN publishers p ON b.publisher_id = p.id
-        CROSS APPLY (
-            SELECT STRING_AGG(a.name, ', ') AS authors
-            FROM book_authors ba
-            JOIN authors a ON ba.author_id = a.id
-            WHERE ba.book_id = b.id
-        ) authors
-        CROSS APPLY (
-            SELECT STRING_AGG(c.name, ', ') AS categories
-            FROM book_categories bc
-            JOIN categories c ON bc.category_id = c.id
-            WHERE bc.book_id = b.id
-        ) categories
-        LEFT JOIN (
-            SELECT book_id, COUNT(*) AS count_borrowed
-            FROM book_copies
-            WHERE status = 'BORROWED'
-            GROUP BY book_id
-        ) borrowed ON borrowed.book_id = b.id
-        LEFT JOIN (
-            SELECT book_id, COUNT(*) AS count_available
-            FROM book_copies
-            WHERE status = 'AVAILABLE'
-            GROUP BY book_id
-        ) available ON available.book_id = b.id
-        WHERE %s LIKE :keyword
-        ORDER BY %s
-        OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
-    """;
+                    SELECT b.id,
+                           b.name,
+                           b.isbn,
+                           b.avatar,
+                           p.name AS publisherName,
+                           authors.authors,
+                           categories.categories,
+                           ISNULL(borrowed.count_borrowed, 0) AS numberOfBorrowed,
+                           ISNULL(available.count_available, 0) AS numberOfAvailable
+                    FROM books b
+                    LEFT JOIN publishers p ON b.publisher_id = p.id
+                    CROSS APPLY (
+                        SELECT STRING_AGG(a.name, ', ') AS authors
+                        FROM book_authors ba
+                        JOIN authors a ON ba.author_id = a.id
+                        WHERE ba.book_id = b.id
+                    ) authors
+                    CROSS APPLY (
+                        SELECT STRING_AGG(c.name, ', ') AS categories
+                        FROM book_categories bc
+                        JOIN categories c ON bc.category_id = c.id
+                        WHERE bc.book_id = b.id
+                    ) categories
+                    LEFT JOIN (
+                        SELECT book_id, COUNT(*) AS count_borrowed
+                        FROM book_copies
+                        WHERE status = 'BORROWED'
+                        GROUP BY book_id
+                    ) borrowed ON borrowed.book_id = b.id
+                    LEFT JOIN (
+                        SELECT book_id, COUNT(*) AS count_available
+                        FROM book_copies
+                        WHERE status = 'AVAILABLE'
+                        GROUP BY book_id
+                    ) available ON available.book_id = b.id
+                    WHERE %s LIKE :keyword AND b.is_active = 1
+                    ORDER BY %s
+                    OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY
+                """;
         String filterColumn;
         switch (type.toLowerCase()) {
             case "name" -> filterColumn = "b.name";
-            case "author" -> filterColumn = "(SELECT STRING_AGG(a.name, ', ') FROM book_authors ba JOIN authors a ON ba.author_id = a.id WHERE ba.book_id = b.id)";
-            case "category" -> filterColumn = "(SELECT STRING_AGG(c.name, ', ') FROM book_categories bc JOIN categories c ON bc.category_id = c.id WHERE bc.book_id = b.id)";
+            case "author" ->
+                    filterColumn = "(SELECT STRING_AGG(a.name, ', ') FROM book_authors ba JOIN authors a ON ba.author_id = a.id WHERE ba.book_id = b.id)";
+            case "category" ->
+                    filterColumn = "(SELECT STRING_AGG(c.name, ', ') FROM book_categories bc JOIN categories c ON bc.category_id = c.id WHERE bc.book_id = b.id)";
             case "publisher" -> filterColumn = "p.name";
             default -> throw new IllegalArgumentException("Invalid search type: " + type);
         }
@@ -167,21 +172,74 @@ public class BookCustomRepositoryImpl implements BookCustomRepository {
         return results;
     }
 
+    @Override
+    public BookDetailResponseDTO findBookById(Long id) {
+        StringBuilder sql = new StringBuilder("""
+                SELECT b.id,
+                       b.name,
+                       b.isbn,
+                       b.avatar,
+                       p.name AS publisherName,
+                       authors.authors,
+                       categories.categories,
+                       ISNULL(borrowed.count_borrowed, 0) AS numberOfBorrowed,
+                       ISNULL(available.count_available, 0) AS numberOfAvailable
+                       FROM books b
+                LEFT JOIN publishers p ON b.publisher_id = p.id
+                CROSS APPLY (
+                    SELECT STRING_AGG(a.name, ', ') AS authors
+                    FROM book_authors ba
+                    JOIN authors a ON ba.author_id = a.id
+                    WHERE ba.book_id = b.id
+                ) authors
+                CROSS APPLY (
+                    SELECT STRING_AGG(c.name, ', ') AS categories
+                    FROM book_categories bc
+                    JOIN categories c ON bc.category_id = c.id
+                    WHERE bc.book_id = b.id
+                ) categories
+                LEFT JOIN (
+                    SELECT book_id, COUNT(*) AS count_borrowed
+                    FROM book_copies
+                    WHERE status = 'BORROWED'
+                    GROUP BY book_id
+                ) borrowed ON borrowed.book_id = b.id
+                LEFT JOIN (
+                    SELECT book_id, COUNT(*) AS count_available
+                    FROM book_copies
+                    WHERE status = 'AVAILABLE'
+                    GROUP BY book_id
+                ) available ON available.book_id = b.id
+                WHERE b.id = :id AND b.is_active = 1
+                """);
+        Query query = entityManager.createNativeQuery(sql.toString(), "BookDetailMapping");
+        query.setParameter("id", id);
+        @SuppressWarnings("unchecked")
+        List<BookDetailResponseDTO> results = query.getResultList();
+        if (results.isEmpty()) {
+            return null;
+        } else {
+            return results.get(0);
+        }
+    }
+
 
     @Override
     public long countFilterBooks(String type, String keyword) {
         String countSql = """
-        SELECT COUNT(*)
-        FROM books b
-        LEFT JOIN publishers p ON b.publisher_id = p.id
-        WHERE %s LIKE :keyword
-    """;
+                    SELECT COUNT(*)
+                    FROM books b
+                    LEFT JOIN publishers p ON b.publisher_id = p.id
+                    WHERE %s LIKE :keyword AND b.is_active = 1
+                """;
 
         String filterColumn;
         switch (type.toLowerCase()) {
             case "name" -> filterColumn = "b.name";
-            case "author" -> filterColumn = "(SELECT STRING_AGG(a.name, ', ') FROM book_authors ba JOIN authors a ON ba.author_id = a.id WHERE ba.book_id = b.id)";
-            case "category" -> filterColumn = "(SELECT STRING_AGG(c.name, ', ') FROM book_categories bc JOIN categories c ON bc.category_id = c.id WHERE bc.book_id = b.id)";
+            case "author" ->
+                    filterColumn = "(SELECT STRING_AGG(a.name, ', ') FROM book_authors ba JOIN authors a ON ba.author_id = a.id WHERE ba.book_id = b.id)";
+            case "category" ->
+                    filterColumn = "(SELECT STRING_AGG(c.name, ', ') FROM book_categories bc JOIN categories c ON bc.category_id = c.id WHERE bc.book_id = b.id)";
             case "publisher" -> filterColumn = "p.name";
             default -> throw new IllegalArgumentException("Invalid search type: " + type);
         }
@@ -195,6 +253,46 @@ public class BookCustomRepositoryImpl implements BookCustomRepository {
     }
 
 
+    @Override
+    public boolean existsByAuthorId(Long authorId) {
+        String sql = """
+        SELECT COUNT(*)
+        FROM books b
+        JOIN book_authors ba ON b.id = ba.book_id
+        WHERE ba.author_id = :authorId AND b.is_active = 1
+    """;
+        Query query = entityManager.createNativeQuery(sql);
+        query.setParameter("authorId", authorId);
+        Number count = (Number) query.getSingleResult();
+        return count.intValue() > 0;
+    }
+
+    @Override
+    public boolean existsByPublisherId(Long publisherId) {
+        String sql = """
+        SELECT COUNT(*)
+        FROM books b
+        WHERE b.publisher_id = :publisherId AND b.is_active = 1
+    """;
+        Query query = entityManager.createNativeQuery(sql);
+        query.setParameter("publisherId", publisherId);
+        Number count = (Number) query.getSingleResult();
+        return count.intValue() > 0;
+    }
+
+    @Override
+    public boolean existsByCategoryId(Long categoryId) {
+        String sql = """
+        SELECT COUNT(*)
+        FROM books b
+        JOIN book_categories bc ON b.id = bc.book_id
+        WHERE bc.category_id = :categoryId AND b.is_active = 1
+    """;
+        Query query = entityManager.createNativeQuery(sql);
+        query.setParameter("categoryId", categoryId);
+        Number count = (Number) query.getSingleResult();
+        return count.intValue() > 0;
+    }
 
 
 

@@ -1,13 +1,14 @@
 package dev.thangngo.lmssoftdreams.services.impl;
 
 import dev.thangngo.lmssoftdreams.dtos.request.borrow.BorrowCreateRequest;
+import dev.thangngo.lmssoftdreams.dtos.request.borrow.BorrowSearchRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.borrow.BorrowUpdateRequest;
+import dev.thangngo.lmssoftdreams.dtos.response.PageResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.bookcopy.BookCopyListResponse;
-import dev.thangngo.lmssoftdreams.dtos.response.bookcopy.BookCopyResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.borrow.BorrowResponse;
-import dev.thangngo.lmssoftdreams.entities.Book;
 import dev.thangngo.lmssoftdreams.entities.BookCopy;
 import dev.thangngo.lmssoftdreams.entities.Borrow;
+import dev.thangngo.lmssoftdreams.entities.User;
 import dev.thangngo.lmssoftdreams.enums.BookStatus;
 import dev.thangngo.lmssoftdreams.enums.BorrowStatus;
 import dev.thangngo.lmssoftdreams.enums.ErrorCode;
@@ -16,10 +17,15 @@ import dev.thangngo.lmssoftdreams.mappers.BorrowMapper;
 import dev.thangngo.lmssoftdreams.repositories.BookCopyRepository;
 import dev.thangngo.lmssoftdreams.repositories.BookRepository;
 import dev.thangngo.lmssoftdreams.repositories.BorrowRepository;
+import dev.thangngo.lmssoftdreams.repositories.UserRepository;
 import dev.thangngo.lmssoftdreams.services.BorrowService;
+import dev.thangngo.lmssoftdreams.services.UserService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Pageable;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -33,18 +39,21 @@ public class BorrowServiceImpl implements BorrowService {
     private final BorrowMapper borrowMapper;
     private final BookCopyRepository bookCopyRepository;
     private final BookRepository bookRepository;
+    private final UserRepository userRepository;
 
     public BorrowServiceImpl(BorrowRepository borrowRepository,
                              BorrowMapper borrowMapper,
-                             BookCopyRepository bookCopyRepository, BookRepository bookRepository) {
+                             BookCopyRepository bookCopyRepository, BookRepository bookRepository, UserRepository userRepository) {
         this.borrowRepository = borrowRepository;
         this.borrowMapper = borrowMapper;
         this.bookCopyRepository = bookCopyRepository;
         this.bookRepository = bookRepository;
+        this.userRepository = userRepository;
     }
 
     @Override
     public BorrowResponse createBorrow(BorrowCreateRequest request) {
+        userRepository.findById(request.getUserId()).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         validateDates(request.getBorrowDate(), request.getReturnDate());
         bookRepository.findById(request.getBookId()).orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
         List<BookCopyListResponse> bookCopies = bookCopyRepository.findAllBookCopyByBookIdAndStatus(request.getBookId(), BookStatus.AVAILABLE.name());
@@ -87,12 +96,6 @@ public class BorrowServiceImpl implements BorrowService {
         return borrowMapper.toBorrowResponse(savedBorrow);
     }
 
-
-    @Override
-    public List<BorrowResponse> getAllBorrows() {
-        return borrowRepository.findAllBorrowResponses();
-    }
-
     @Override
     public BorrowResponse updateBorrowStatus(Long id, String status) {
         Borrow borrow = borrowRepository.findById(id)
@@ -107,6 +110,19 @@ public class BorrowServiceImpl implements BorrowService {
         return borrowMapper.toBorrowResponse(savedBorrow);
     }
 
+    @Override
+    public PageResponse<BorrowResponse> searchBorrow(BorrowSearchRequest request, Pageable pageable) {
+        List<BorrowResponse> borrowResponseList = borrowRepository.searchBorrows(request.getKeyword(), pageable);
+        long total = borrowRepository.countSearchBorrows(request.getKeyword());
+        Page<BorrowResponse> page = new PageImpl<>(borrowResponseList, pageable, total);
+        return new PageResponse<>(page);
+    }
+
+    @Override
+    public List<BorrowResponse> searchBorrows(BorrowSearchRequest request, Pageable pageable) {
+        return borrowRepository.searchBorrows(request.getKeyword(), pageable);
+    }
+
     private void ensureBookCopyAvailable(Long bookCopyId) {
         BookCopy bookCopy = bookCopyRepository.findById(bookCopyId)
                 .orElseThrow(() -> new AppException(ErrorCode.BOOK_COPY_NOT_FOUND));
@@ -115,6 +131,8 @@ public class BorrowServiceImpl implements BorrowService {
             throw new AppException(ErrorCode.BOOK_COPY_ALREADY_BORROWED);
         }
     }
+
+
 
     private void validateDates(LocalDate start, LocalDate end) {
         if (start == null || end == null) {

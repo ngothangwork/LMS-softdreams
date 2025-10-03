@@ -11,6 +11,8 @@ import java.util.UUID;
 public class BorrowCreateRequest {
     private LocalDate borrowDate;
     private LocalDate returnDate;
+
     private Long bookId;
-    private String userId;
+
+    private UUID userId;
 }

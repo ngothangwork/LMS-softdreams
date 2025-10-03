@@ -37,5 +37,8 @@ public class Author {
 
     @Column(nullable = false, columnDefinition = "NVARCHAR(MAX)")
     private String description;
+
+    @Column(nullable = false)
+    private Boolean isActive = true;
 }
 
