@@ -38,7 +38,7 @@ public class PublisherServiceImpl implements PublisherService {
 
     @Override
     public List<PublisherResponse> getPublisherByName(String name) {
-        return publisherRepository.findByNameContaining(name)
+        return publisherRepository.findByNameContainingAndIsActive(name, true)
                 .stream()
                 .map(publisherMapper::toPublisherResponse)
                 .toList();
