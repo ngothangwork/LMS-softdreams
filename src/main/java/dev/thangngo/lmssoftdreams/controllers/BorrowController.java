@@ -1,12 +1,14 @@
 package dev.thangngo.lmssoftdreams.controllers;
 
-import dev.thangngo.lmssoftdreams.dtos.request.book.BookSearchRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.borrow.BorrowCreateRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.borrow.BorrowSearchRequest;
 import dev.thangngo.lmssoftdreams.dtos.request.borrow.BorrowUpdateRequest;
 import dev.thangngo.lmssoftdreams.dtos.response.ApiResponse;
 import dev.thangngo.lmssoftdreams.dtos.response.PageResponse;
+import dev.thangngo.lmssoftdreams.dtos.response.borrow.BorrowExportResult;
 import dev.thangngo.lmssoftdreams.dtos.response.borrow.BorrowResponse;
+import dev.thangngo.lmssoftdreams.publisher.BorrowCreatePublisher;
+import dev.thangngo.lmssoftdreams.publisher.BorrowExportPublisher;
 import dev.thangngo.lmssoftdreams.services.BorrowService;
 import jakarta.validation.Valid;
 import net.sf.jasperreports.engine.*;
@@ -16,7 +18,7 @@ import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
 import net.sf.jasperreports.engine.type.*;
 import net.sf.jasperreports.export.SimpleExporterInput;
 import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
-import org.hibernate.query.Page;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -27,20 +29,47 @@ import org.springframework.web.bind.annotation.*;
 
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/borrows")
 public class BorrowController {
 
     private final BorrowService borrowService;
+    private final BorrowExportPublisher borrowExportPublisher;
+    private final BorrowCreatePublisher borrowCreatePublisher;
 
-    public BorrowController(BorrowService borrowService) {
+    public BorrowController(BorrowService borrowService, BorrowExportPublisher borrowExportPublisher, BorrowCreatePublisher borrowCreatePublisher) {
         this.borrowService = borrowService;
+        this.borrowExportPublisher = borrowExportPublisher;
+        this.borrowCreatePublisher = borrowCreatePublisher;
     }
+
+    @PostMapping("/export")
+    public ResponseEntity<ApiResponse<String>> exportBorrowPdf(@RequestBody BorrowSearchRequest request) {
+        borrowExportPublisher.sendExportRequest(request);
+        return ResponseEntity.accepted().body(
+                ApiResponse.<String>builder()
+                        .success(true)
+                        .code(202)
+                        .message("Yêu cầu xuất PDF đã được gửi, hệ thống sẽ xử lý trong nền.")
+                        .result("Đang xử lý export PDF...")
+                        .build()
+        );
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<ApiResponse<BorrowResponse>> createBorrowWithRabbit( @Valid @RequestBody BorrowCreateRequest request) {
+        System.out.println("Borrow request = " + request);
+        borrowCreatePublisher.sendCreateRequest(request);
+        return ResponseEntity.ok(ApiResponse.<BorrowResponse>builder()
+                .success(true)
+                .code(200)
+                .message("Borrow created successfully")
+                .build());
+    }
+
 
     @PostMapping
     public ResponseEntity<ApiResponse<BorrowResponse>> createBorrow(
@@ -113,85 +142,86 @@ public class BorrowController {
 
     }
 
-    @PostMapping("/export")
-    public ResponseEntity<byte[]> exportBorrowsPdf(
-            @RequestBody @Valid BorrowSearchRequest request,
-            @PageableDefault(size = 5, sort = "name", direction = Sort.Direction.ASC) Pageable pageable
-    ) throws Exception {
-        List<BorrowResponse> borrows = borrowService.searchBorrows(request, pageable);
+//    @PostMapping("/export")
+//    public ResponseEntity<byte[]> exportBorrowsPdf(
+//            @RequestBody @Valid BorrowSearchRequest request,
+//            @PageableDefault(size = 5, sort = "name", direction = Sort.Direction.ASC) Pageable pageable
+//    ) throws Exception {
+//        List<BorrowResponse> borrows = borrowService.searchBorrows(request, pageable);
+//
+//        JasperDesign jasperDesign = new JasperDesign();
+//        jasperDesign.setName("BorrowsReport");
+//        jasperDesign.setPageWidth(595);
+//        jasperDesign.setPageHeight(842);
+//
+//        JRDesignBand titleBand = new JRDesignBand();
+//        titleBand.setHeight(40);
+//
+//        JRDesignStaticText title = new JRDesignStaticText();
+//        title.setText("Báo cáo mượn sách");
+//        title.setX(200);
+//        title.setY(10);
+//        title.setWidth(200);
+//        title.setHeight(30);
+//        title.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+//        titleBand.addElement(title);
+//
+//        jasperDesign.setTitle(titleBand);
+//
+//        JRDesignBand columnHeader = new JRDesignBand();
+//        columnHeader.setHeight(20);
+//        columnHeader.addElement(createHeader("ID", 0, 50));
+//        columnHeader.addElement(createHeader("Borrow Date", 50, 90));
+//        columnHeader.addElement(createHeader("Return Date", 140, 90));
+//        columnHeader.addElement(createHeader("Book Name", 230, 170));
+//        columnHeader.addElement(createHeader("Username", 400, 90));
+//        columnHeader.addElement(createHeader("Status", 490, 80));
+//        jasperDesign.setColumnHeader(columnHeader);
+//
+//        JRDesignBand detailBand = new JRDesignBand();
+//        detailBand.setHeight(20);
+//        JRDesignTextField idField = createField("id", Long.class, 0, 50);
+//        idField.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+//        detailBand.addElement(idField);
+//        JRDesignTextField borrowDateField = createField("borrowDate", java.time.LocalDate.class, 50, 90);
+//        borrowDateField.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+//        detailBand.addElement(borrowDateField);
+//
+//        JRDesignTextField returnDateField = createField("returnDate", java.time.LocalDate.class, 140, 90);
+//        returnDateField.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+//        detailBand.addElement(returnDateField);
+//
+//        detailBand.addElement(createField("bookName", String.class, 230, 170));
+//
+//        JRDesignTextField usernameField = createField("username", String.class, 400, 90);
+//        usernameField.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
+//        detailBand.addElement(usernameField);
+//
+//        detailBand.addElement(createField("status", String.class, 490, 80));
+//        ((JRDesignSection) jasperDesign.getDetailSection()).addBand(detailBand);
+//
+//        jasperDesign.addField(createJRField("id", Long.class));
+//        jasperDesign.addField(createJRField("borrowDate", java.time.LocalDate.class));
+//        jasperDesign.addField(createJRField("returnDate", java.time.LocalDate.class));
+//        jasperDesign.addField(createJRField("bookName", String.class));
+//        jasperDesign.addField(createJRField("username", String.class));
+//        jasperDesign.addField(createJRField("status", String.class));
+//
+//        JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
+//        JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(borrows);
+//        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, new HashMap<>(), dataSource);
+//
+//        ByteArrayOutputStream out = new ByteArrayOutputStream();
+//        JasperExportManager.exportReportToPdfStream(jasperPrint, out);
+//        byte[] pdfBytes = out.toByteArray();
+//
+//        HttpHeaders headers = new HttpHeaders();
+//        headers.setContentType(MediaType.APPLICATION_PDF);
+//        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=borrows.pdf");
+//
+//        return ResponseEntity.ok().headers(headers).body(pdfBytes);
+//    }
 
-        JasperDesign jasperDesign = new JasperDesign();
-        jasperDesign.setName("BorrowsReport");
-        jasperDesign.setPageWidth(595);
-        jasperDesign.setPageHeight(842);
-
-        JRDesignBand titleBand = new JRDesignBand();
-        titleBand.setHeight(40);
-
-        JRDesignStaticText title = new JRDesignStaticText();
-        title.setText("Báo cáo mượn sách");
-        title.setX(200);
-        title.setY(10);
-        title.setWidth(200);
-        title.setHeight(30);
-        title.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
-        titleBand.addElement(title);
-
-        jasperDesign.setTitle(titleBand);
-
-        JRDesignBand columnHeader = new JRDesignBand();
-        columnHeader.setHeight(20);
-        columnHeader.addElement(createHeader("ID", 0, 50));
-        columnHeader.addElement(createHeader("Borrow Date", 50, 90));
-        columnHeader.addElement(createHeader("Return Date", 140, 90));
-        columnHeader.addElement(createHeader("Book Name", 230, 170));
-        columnHeader.addElement(createHeader("Username", 400, 90));
-        columnHeader.addElement(createHeader("Status", 490, 80));
-        jasperDesign.setColumnHeader(columnHeader);
-
-        JRDesignBand detailBand = new JRDesignBand();
-        detailBand.setHeight(20);
-        JRDesignTextField idField = createField("id", Long.class, 0, 50);
-        idField.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
-        detailBand.addElement(idField);
-        JRDesignTextField borrowDateField = createField("borrowDate", java.time.LocalDate.class, 50, 90);
-        borrowDateField.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
-        detailBand.addElement(borrowDateField);
-
-        JRDesignTextField returnDateField = createField("returnDate", java.time.LocalDate.class, 140, 90);
-        returnDateField.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
-        detailBand.addElement(returnDateField);
-
-        detailBand.addElement(createField("bookName", String.class, 230, 170));
-
-        JRDesignTextField usernameField = createField("username", String.class, 400, 90);
-        usernameField.setHorizontalTextAlign(HorizontalTextAlignEnum.CENTER);
-        detailBand.addElement(usernameField);
-
-        detailBand.addElement(createField("status", String.class, 490, 80));
-        ((JRDesignSection) jasperDesign.getDetailSection()).addBand(detailBand);
-
-        jasperDesign.addField(createJRField("id", Long.class));
-        jasperDesign.addField(createJRField("borrowDate", java.time.LocalDate.class));
-        jasperDesign.addField(createJRField("returnDate", java.time.LocalDate.class));
-        jasperDesign.addField(createJRField("bookName", String.class));
-        jasperDesign.addField(createJRField("username", String.class));
-        jasperDesign.addField(createJRField("status", String.class));
-
-        JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
-        JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(borrows);
-        JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, new HashMap<>(), dataSource);
-
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        JasperExportManager.exportReportToPdfStream(jasperPrint, out);
-        byte[] pdfBytes = out.toByteArray();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=borrows.pdf");
-
-        return ResponseEntity.ok().headers(headers).body(pdfBytes);
-    }
 
 
     @PostMapping("/export-excel")

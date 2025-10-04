@@ -4,6 +4,7 @@ import dev.thangngo.lmssoftdreams.dtos.response.book.BookDetailResponseDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import java.util.Set;
 
@@ -11,7 +12,7 @@ import java.util.Set;
 @Table(name = "books")
 @Getter
 @Setter
-
+@ToString(exclude = {"publisher", "authors", "categories", "copies"})
 @SqlResultSetMapping(
         name = "BookDetailMapping",
         classes = @ConstructorResult(

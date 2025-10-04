@@ -26,7 +26,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/public/**", "/uploads/**", "/books/search/**", "/books/**", "/borrows/export/**").permitAll()
+                        .requestMatchers("/auth/**", "/public/**", "/uploads/**", "/books/search/**", "/books/**", "/borrows/export/**", "/borrows/actions/export-async").permitAll()
                         .requestMatchers("/manager/**").hasRole("ADMIN")
                         .requestMatchers("/books/create/**",
                                 "/books/update/**",
